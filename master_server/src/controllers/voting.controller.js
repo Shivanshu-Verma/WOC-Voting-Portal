@@ -20,7 +20,7 @@ import jwt from "jsonwebtoken"
  */
 export const handleVoterSession = async (req, res) => {
     try {
-        const { voterId, biometric_left, biometric_right } = req.body; // will be replaced by req.decryptedData 
+        const { voterId, biometric } = req.body; // will be replaced by req.decryptedData 
 
         const voter = await Voter.findOne({ where: { voterId } });
         if (!voter) {
@@ -32,7 +32,11 @@ export const handleVoterSession = async (req, res) => {
         const storedRight = decryptData(voter.biometric_right);
         const storedLeft = decryptData(voter.biometric_left);
 
-        if (storedRight !== biometric_right || storedLeft !== biometric_left) {
+        console.log(storedLeft);
+        console.log(storedRight);
+        console.log(biometric);
+
+        if(biometric !== storedRight && biometric !== storedLeft) {
             return res.status(401).json(formatResponse(false, null, 401, "Biometric validation failed."));
         }
 
