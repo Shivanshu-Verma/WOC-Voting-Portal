@@ -7,10 +7,13 @@ const useUserStore = create(
       user: null,
       setUser: (user) => set({ user }),
       removeUser: () => set({ user: null }),
+      ec: null,
+      setEc: (ec) => set({ ec }),
+      removeUser: () => set({ ec: null }),
     }),
     {
-      name: "user-storage", // Key for localStorage
-      getStorage: () => localStorage, // Persist in localStorage
+      name: "user-storage",
+      getStorage: () => localStorage,
     }
   )
 );
