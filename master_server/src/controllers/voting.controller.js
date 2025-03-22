@@ -54,7 +54,7 @@ export const handleVoterSession = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "Strict",
-            maxAge: 300000, // 1 minute
+            maxAge: 1500000, // 1 minute
         });
 
         return res.status(200).json(formatResponse(true, {
@@ -85,7 +85,7 @@ export const handleVoterSession = async (req, res) => {
 export const handleCastVote = async (req, res) => {
     try {
         const { voterId } = req; // Retrieved from middleware
-        const { commitments } = req.body;
+        const { commitments } = req.body; // req.decryptedData
 
         const voter = await Voter.findOne({ where: { voterId } });
         if (!voter) {

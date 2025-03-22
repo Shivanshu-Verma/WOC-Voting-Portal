@@ -38,7 +38,7 @@ export const Voter = sequelize.define(
         allowedPositions: {
             type: DataTypes.ARRAY(DataTypes.STRING), // Storing an array of allowed positions
             allowNull: false,
-            defaultValue: ["general_secretary_ss"],
+            defaultValue: ["general_secretary_ss", "general_secretary_sac"],
             validate: {
                 isValidPosition(value) {
                     value.forEach(pos => {

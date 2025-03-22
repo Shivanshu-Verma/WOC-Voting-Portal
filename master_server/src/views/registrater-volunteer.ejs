@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Register EC volunteer</title>
+    <style>
+        /* General Reset and Fonts */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Header Bar - Modified */
+        .header-bar {
+            background-color: #4da6ff; /* Changed to lighter shade of blue */
+            color: white;
+            width: 100%;
+            display: flex;
+            justify-content: center; /* Added to center align content */
+            align-items: center;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-bar img {
+            height: 60px;
+            margin-right: 20px;
+        }
+
+        .header-bar h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center; /* Added to center align text */
+        }
+
+        /* Content Container */
+        .content {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Main Title */
+        h1 {
+            color: #2c3e50;
+            margin: 30px 0;
+            text-align: center;
+            font-weight: 600;
+            font-size: 2.2rem;
+        }
+
+        /* Form Container */
+        #registerForm {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        /* Form Fields */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 24px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 24px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        /* Submit Button */
+        button[type="submit"] {
+            background-color: #4da6ff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #4da6ff;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-bar {
+                padding: 10px 15px;
+            }
+            
+            .header-bar img {
+                height: 40px;
+                margin-right: 10px;
+            }
+            
+            .header-bar h2 {
+                font-size: 1.2rem;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            #registerForm {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                margin: 20px 0;
+            }
+
+            input[type="text"],
+            input[type="number"] {
+                padding: 12px;
+            }
+
+            button[type="submit"] {
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- New header bar -->
+    <div class="header-bar">
+        <img src="../assets/IITJ_Logo.png" alt="IIT Jodhpur Logo">
+        <h2>Indian Institute of Technology, Jodhpur</h2>
+    </div>
+    
+    <!-- Content container -->
+    <div class="content">
+        <h1>Register Volunteer</h1>
+
+        <form id="registerForm">
+            <label for="id">Volunteer ID:</label>
+            <input type="text" id="id" name="id" required>
+            <br>
+            
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <br>
+            
+            <label for="name">Phone:</label>
+            <input type="number" id="contact" name="contact" required>
+            <br>
+            
+            <label for="right">Right Thumb Biometric:</label>
+            <input type="text" id="right" name="biometric_right" required>
+            <br>
+            
+            <label for="left">Left Thumb Biometric:</label>
+            <input type="text" id="left" name="biometric_left" required>
+            <br>
+            
+            <label for="id">Staff ID:</label>
+            <input type="text" id="verifiedByStaff" name="verifiedByStaff" required>
+            <br>
+
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", async function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = {
+                id: document.getElementById("id").value,
+                name: document.getElementById("name").value,
+                contact: document.getElementById("contact").value,
+                biometric: {
+                    right: document.getElementById("right").value,
+                    left: document.getElementById("left").value
+                },
+                verifiedByStaff:document.getElementById("verifiedByStaff").value
+            };
+
+
+            try {
+                const response = await fetch("/api/ec/register/volunteer", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.Success) {
+                    alert("Success: " + result.Data.message);
+                    document.getElementById("registerForm").reset(); // Clear form
+                } else {
+                    alert("Error: " + result.Error.Message);
+                }
+            } catch (error) {
+                alert("Request failed: " + error.message);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
