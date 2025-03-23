@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import {useEvmStore} from '../store/zustand';
+import useEvmStore from '../context/zustand';
 
 function ProtectedRoute({ children }) {
-    const evmId = useEvmStore((state) => state.evmId);
-    if (!evmId) {
+    const ec = useEvmStore((state) => state.ec);
+    if (!ec) {
         return <Navigate to="/" replace />;
     }
 

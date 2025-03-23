@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import Logo from '../assets/IITJ_Logo.png';
+import { useLocation } from 'react-router-dom';
 
 function AddVoterPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+  const location = useLocation();
+  const voterInfo = location.state?.studentInfo;
+
+  useEffect(() => {
+    if (voterInfo) {
+      setValue("voterId", voterInfo.voterId || "");
+      setValue("name", voterInfo.name || "");
+      setValue("biometric", voterInfo.biometric || "");
+    }
+  }, [voterInfo, setValue]);
 
   const onSubmit = async (data) => {
     try {
-      // Call the voter registration function (to be implemented in API)
       console.log("Voter Data Submitted", data);
       toast.success('Voter Registered Successfully');
     } catch (error) {
@@ -18,10 +27,6 @@ function AddVoterPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <header className="bg-blue-400 text-white w-full flex justify-center items-center p-4 shadow-md">
-        <img src={Logo} alt="IIT Jodhpur Logo" className="h-16 mr-4" />
-        <h2 className="text-xl font-semibold text-center">Indian Institute of Technology, Jodhpur</h2>
-      </header>
       <div className="flex flex-col items-center justify-center flex-grow p-6">
         <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">Add Voter</h2>
@@ -58,14 +63,6 @@ function AddVoterPage() {
               <input
                 type="checkbox"
                 {...register("verifiedByVolunteer")}
-                className="mt-1"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Verified by Staff</label>
-              <input
-                type="checkbox"
-                {...register("verifiedByStaff")}
                 className="mt-1"
               />
             </div>
