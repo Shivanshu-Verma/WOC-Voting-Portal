@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser'
 import path from 'path';
+import cors from "cors";
 
 // import routes
 import ecRouter from "./routes/ec.routes.js"
@@ -21,6 +22,10 @@ app.use(bodyParser.json()); // Needed for JSON requests
 
 
 // cors
+app.use(cors({
+  origin: process.env.CORS_ORIGIN,
+  credentials: true,
+}));
 
 // mount routes
 app.get('/', (req, res) => {
@@ -33,34 +38,34 @@ app.use("/api/voter", voterRouter);
 app.use("/api/evm", evmRouter);
 app.use("/api/vote-cast", votingRouter);
 
-app.get('/home',(req,res)=>{
+app.get('/home', (req, res) => {
   res.render('home.ejs')
 })
 
 app.get('/register-staff', async (req, res) => {
   try {
-      const response = await handleEcStaffRegistration(req, res);
-      res.render('register-staff', { message: "Staff registered successfully!" });
+    const response = await handleEcStaffRegistration(req, res);
+    res.render('register-staff', { message: "Staff registered successfully!" });
   } catch (error) {
-      res.render('register-staff', { message: "Error: " + error.message });
+    res.render('register-staff', { message: "Error: " + error.message });
   }
 });
 
 app.get('/register-volunteer', async (req, res) => {
   try {
-      const response = await handleEcStaffRegistration(req, res);
-      res.render('registrater-volunteer', { message: "Staff registered successfully!" });
+    const response = await handleEcStaffRegistration(req, res);
+    res.render('registrater-volunteer', { message: "Staff registered successfully!" });
   } catch (error) {
-      res.render('registrater-volunteer', { message: "Error: " + error.message });
+    res.render('registrater-volunteer', { message: "Error: " + error.message });
   }
 });
 
 app.get('/register-candidate', async (req, res) => {
   try {
-      const response = await handleEcStaffRegistration(req, res);
-      res.render('registrater-candidate', { message: "Staff registered successfully!" });
+    const response = await handleEcStaffRegistration(req, res);
+    res.render('registrater-candidate', { message: "Staff registered successfully!" });
   } catch (error) {
-      res.render('registrater-candidate', { message: "Error: " + error.message });
+    res.render('registrater-candidate', { message: "Error: " + error.message });
   }
 });
 
