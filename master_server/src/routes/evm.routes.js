@@ -1,8 +1,8 @@
 import express from "express";
 import { handleEvmRegistration } from "../controllers/evm.controller.js";
-import { authenticateUser, validateEvmRequest } from "../middlewares/auth.middleware.js"
+import { authenticateUser, verifierIsStaff } from "../middlewares/auth.middleware.js"
 
 const router = express.Router();
-router.post("/register", authenticateUser, validateEvmRequest, handleEvmRegistration); // ec auth
+router.post("/register", authenticateUser, verifierIsStaff, handleEvmRegistration); // ec auth
 
 export default router;
