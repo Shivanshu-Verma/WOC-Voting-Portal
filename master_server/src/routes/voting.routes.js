@@ -7,7 +7,7 @@ import {
 import { sessionValidationMW } from "../middlewares/voting.middleware.js";
 import {
   authenticateUser,
-  validateEvmRequest,
+  verifierIsStaff,
 } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -18,14 +18,14 @@ const router = express.Router();
 router.post(
   "/login",
   authenticateUser,
-  validateEvmRequest,
+  verifierIsStaff,
   decryptMiddleware,
   handleVoterSession
 ); // decryptMiddleware,
 router.post(
   "/cast",
   authenticateUser,
-  validateEvmRequest,
+  verifierIsStaff,
   decryptMiddleware,
   sessionValidationMW,
   handleCastVote
