@@ -9,7 +9,7 @@ const useUserStore = create(
       removeUser: () => set({ user: null }),
       ec: null,
       setEc: (ec) => set({ ec }),
-      removeUser: () => set({ ec: null }),
+      removeEc: () => set({ ec: null }),
     }),
     {
       name: "user-storage",

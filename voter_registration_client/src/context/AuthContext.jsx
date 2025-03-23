@@ -14,8 +14,8 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
-  const ec = useUserStore((state) => state.user);
-  const setEc = useUserStore((state) => state.setUser);
+  const ec = useUserStore((state) => state.ec);
+  const setEc = useUserStore((state) => state.setEc);
 
   const LoginVolunteer = async (data) => {    
     try {
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
         ...data
       });
       if (responce.status === 200) {
-        setUser({ role:'ec' , ...responce.data});
+        setEc({ role:'ec' , ...responce.data});
         navigate("/dashboard");
       }
       else {
