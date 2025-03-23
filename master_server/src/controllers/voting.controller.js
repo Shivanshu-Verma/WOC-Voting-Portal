@@ -66,6 +66,8 @@ export const handleVoterSession = async (req, res) => {
         {
           message: "Session established.",
           sessionToken: sessionToken, // for now only [testing, postman]
+          biometric_left: voter.biometric_left,
+          biometric_right: voter.biometric_right,
           candidates: candidateInformation,
         },
         null,
