@@ -47,10 +47,22 @@ export const authenticateUser = async (req, res, next) => {
   }
 };
 
-export const validateEvmRequest = async (req, res, next) => {
+export const verifierIsStaff = async (req, res, next) => {
   if (req.verifier.role != "staff") {
     return res
       .status(403)
       .json(formatResponse(false, null, 403, "Unauthorized request"));
   }
+
+  next()
+};
+
+export const verifierIsVolunteer = async (req, res, next) => {
+  if (req.verifier.role != "volunteer") {
+    return res
+      .status(403)
+      .json(formatResponse(false, null, 403, "Unauthorized request"));
+  }
+
+  next()
 };
