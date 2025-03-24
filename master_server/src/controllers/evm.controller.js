@@ -3,6 +3,7 @@ import { EC_Staff } from "../models/EC_Staff.js";
 import { encryptData, decryptData } from "../utils/crypto.utils.js";
 import { v4 as uuidv4 } from "uuid";
 import { formatResponse } from "../utils/formatApiResponse.js";
+import crypto from "crypto"
 
 /**
  * Checks if the given port is open on the provided IP.
@@ -57,6 +58,8 @@ export const handleEvmRegistration = async (req, res) => {
       Buffer.from(clientPublicKey, "hex")
     );
 
+    console.log("sharedSecret = ", sharedSecret);
+
     // Generate EVM ID
     const evmId = uuidv4(); // [No uniqueness check yet]
 
@@ -65,12 +68,14 @@ export const handleEvmRegistration = async (req, res) => {
       .update(evmId + process.env.MASTER_SECRET_KEY)
       .digest("hex");
 
+    // **Use SHA-256 hash of the shared secret as the AES key**
+    const aesKey = crypto.createHash("sha256").update(sharedSecret).digest();
+
     const iv = Buffer.from(process.env.ENCRYPTION_IV, "hex"); // Initialization Vector (IV)
-    const cipher = crypto.createCipheriv(
-      "aes-256-cbc",
-      sharedSecret.slice(0, 32),
-      iv
-    );
+    const cipher = crypto.createCipheriv("aes-256-cbc", aesKey, iv);
+
+    console.log("evmKey = ", evmKey);
+
     let encryptedEvmKey = cipher.update(evmKey, "utf8", "hex");
     encryptedEvmKey += cipher.final("hex");
 
@@ -90,7 +95,6 @@ export const handleEvmRegistration = async (req, res) => {
           evmId,
           serverPublicKey: serverPublicKey.toString("hex"),
           encryptedEvmKey,
-          iv: iv.toString("hex"),
           message: "EVM registered successfully",
         },
         null,
