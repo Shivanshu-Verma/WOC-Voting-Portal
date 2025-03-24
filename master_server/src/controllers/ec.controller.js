@@ -3,10 +3,11 @@ import { EC_Volunteer } from "../models/EC_Volunteer.js";
 import { encryptData, decryptData } from "../utils/crypto.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 import crypto from "crypto";
+import jwt from "jsonwebtoken"
 
 // take admin biometrics
 export const handleEcStaffRegistration = async (req, res) => {
-  const { id, name, password, biometric } = req.body;
+  const { id, name, password, biometric } = req.body; // add contact
   console.log(req.body);
   try {
     const staffExist = await EC_Staff.findOne({
@@ -36,7 +37,7 @@ export const handleEcStaffRegistration = async (req, res) => {
       biometric_left: encryptedLeftThumb,
     });
 
-    const staffs = await EC_Staff.findAll();
+    const staffs = await EC_Staff.findAll(); // dont send password
     console.log(staffs);
 
     return res
@@ -44,7 +45,16 @@ export const handleEcStaffRegistration = async (req, res) => {
       .json(
         formatResponse(
           true,
-          { message: "Staff created successfully", staff: staff },
+          {
+            message: "Staff created successfully",
+            staff: {
+              id: staff.id,
+              name: staff.name,
+              verifiedByStaff: staff.verifiedByStaff,
+              biometric_right: staff.biometric_right,
+              biometric_left: staff.biometric_left,
+            }
+          },
           null,
           null
         )
@@ -78,7 +88,7 @@ export const handleEcVolunteerRegistration = async (req, res) => {
 
     // Verify the staff providing verification
     const staffProvided = await EC_Staff.findOne({
-      where: { id: verifiedByStaff.id },
+      where: { id: verifiedByStaff },
     });
 
     if (!staffProvided) {
@@ -100,7 +110,7 @@ export const handleEcVolunteerRegistration = async (req, res) => {
       id,
       name,
       contact,
-      password: `${salt}:${hashedPassword}`, // Store salt and hash together
+      password: `${hashedPassword}`, // Store salt and hash together
       biometric_right: encryptedRightThumb,
       biometric_left: encryptedLeftThumb,
       verifiedByStaff: verifiedByStaff,
@@ -111,7 +121,17 @@ export const handleEcVolunteerRegistration = async (req, res) => {
       .json(
         formatResponse(
           true,
-          { message: "Volunteer created successfully", volunteer },
+          {
+            message: "Volunteer created successfully",
+            volunteer: {
+              id: volunteer.id,
+              name: volunteer.name,
+              contact: volunteer.contact,
+              verifiedByStaff: volunteer.verifiedByStaff,
+              biometric_right: volunteer.biometric_right,
+              biometric_left: volunteer.biometric_left,
+            }
+          },
           null,
           null
         )
@@ -220,7 +240,7 @@ export const handleEcVolunteerLogin = async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: staff.id, role: "volunteer" },
+      { id: volunteer.id, role: "volunteer" },
       process.env.JWT_SECRET,
       {
         expiresIn: "12h",
@@ -231,7 +251,7 @@ export const handleEcVolunteerLogin = async (req, res) => {
     res.cookie("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Secure only in production
-      sameSite: "Strict",
+      sameSite: "None",
       maxAge: 12 * 60 * 60 * 1000, // 12 hours
     });
 
