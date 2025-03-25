@@ -5,19 +5,6 @@ import { fetchCandidateInfo } from "../utils/candidate.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 import jwt from "jsonwebtoken";
 
-// validate user, send session key [controller]
-/**@master_server */
-/**
- * decrypt
- * take voter data {voterId }
- * validate data with db
- * * find voter
- * * validate verifiedByVolunteer and verifiedByStaff (all the way to admin)
- * * compare and validate biometrics
- * create random session key (JWT)
- * encrypt with recieved evmId
- * respond with encryption to the frontend
- */
 export const handleVoterSession = async (req, res) => {
   try {
     const { voterId } = req.decryptedData; // will be replaced by req.decryptedData
@@ -82,18 +69,6 @@ export const handleVoterSession = async (req, res) => {
   }
 };
 
-/** @evm */ // [clientside]
-/**
- * store session key in local storage (or alt)
- * send with next message and delete
- */
-
-// cast vote [controller]
-/**
- * decrypt
- * validate session key
- * collect and store commitments
- */
 export const handleCastVote = async (req, res) => {
   try {
     const { voterId } = req; // Retrieved from middleware
