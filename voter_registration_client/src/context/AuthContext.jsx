@@ -14,6 +14,8 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
+  const ec = useUserStore((state) => state.ec);
+  const setEc = useUserStore((state) => state.setEc);
 
   const LoginVolunteer = async (data) => {    
     try {
@@ -21,9 +23,9 @@ export const AuthProvider = ({ children }) => {
         ...data
       });
       if (responce.status === 200) {
-        setUser(responce.data);
+        setUser({ role:'voter' , ...responce.data});
         toast.success(`Login Success`);
-        navigate("/");
+        navigate("/dashboard");
       }
       else {
         toast.error(`Login Failed`);
@@ -41,8 +43,8 @@ export const AuthProvider = ({ children }) => {
         ...data
       });
       if (responce.status === 200) {
-        setUser(responce.data);
-        navigate("/");
+        setEc({ role:'ec' , ...responce.data});
+        navigate("/dashboard");
       }
       else {
         toast.error(`Login Failed`);
@@ -56,7 +58,7 @@ export const AuthProvider = ({ children }) => {
   const RegisterVoter = async (data) => {
     try {
       const responce = await axios.post(`${base_url}/registerVoter`, {
-        ...data
+        ...data, id: user._id
       });
       if (responce.status === 200) {
         setUser(responce.data);
@@ -70,12 +72,34 @@ export const AuthProvider = ({ children }) => {
       toast.error(`Voter Registration Failed ${error}`);
     }
   }
+
+  const GetStudentDetail = async () => {
+    try {
+        const response = await axios.get(`${base_url}/getStudentDetail/${voterId}`);
+        if (response.status === 200) {
+          if(user.role === "volunteer"){
+            navigate("/add-voter", { state: { voterInfo:response.data } });
+          }
+          else if(user.role === "ec"){
+            navigate("/verify-voter", { state: { voterInfo:response.data } });
+          }
+        } else {
+            toast.error("Student Detail Fetch Failed");
+        }
+    } catch (error) {
+        console.log(error);
+        toast.error("Student Detail Fetch Failed");
+    }
+};
+
   const contextData = {
     LoginVolunteer,
     LoginEcMember,
     user,
-    RegisterVoter
-  }
+    RegisterVoter,
+    ec,
+    GetStudentDetail
+}
 
 
   return (

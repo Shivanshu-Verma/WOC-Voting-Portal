@@ -31,10 +31,10 @@ function ECLoginPage() {
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Biometric</label>
+            <label className="block text-gray-700">Password</label>
             <input 
               type="text"
-              {...register("biometric", { required: "Biometric data is required" })} 
+              {...register("password", { required: "Biometric data is required" })} 
               className="w-full p-2 border border-gray-300 rounded mt-1" 
             />
             {errors.biometric && <p className="text-red-500 text-sm">{errors.biometric.message}</p>}
