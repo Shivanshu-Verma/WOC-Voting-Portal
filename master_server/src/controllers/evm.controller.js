@@ -32,10 +32,8 @@ export const handleEvmRegistration = async (req, res) => {
   }
 
   try {
-    // Find staff and verify biometric
+    // Find staff
     const staff = await EC_Staff.findOne({ where: { id: verifiedByStaff } });
-    // const staffs = await EC_Staff.findAll();
-    // console.log(staffs)
 
     if (!staff) {
       console.log(verifiedByStaff);
@@ -58,8 +56,6 @@ export const handleEvmRegistration = async (req, res) => {
       Buffer.from(clientPublicKey, "hex")
     );
 
-    console.log("sharedSecret = ", sharedSecret);
-
     // Generate EVM ID
     const evmId = uuidv4(); // [No uniqueness check yet]
 
@@ -73,8 +69,6 @@ export const handleEvmRegistration = async (req, res) => {
 
     const iv = Buffer.from(process.env.ENCRYPTION_IV, "hex"); // Initialization Vector (IV)
     const cipher = crypto.createCipheriv("aes-256-cbc", aesKey, iv);
-
-    console.log("evmKey = ", evmKey);
 
     let encryptedEvmKey = cipher.update(evmKey, "utf8", "hex");
     encryptedEvmKey += cipher.final("hex");

@@ -17,15 +17,6 @@ export const handleVoterRegistration = async (req, res) => {
     const encryptedRightThumb = encryptData(biometric.right);
     const encryptedLeftThumb = encryptData(biometric.left);
 
-    // Check if voter already exists
-    // const voterExist = await Voter.findOne({ where: { voterId } });
-
-    // if (voterExist) {
-    //   return res
-    //     .status(409)
-    //     .json(formatResponse(false, null, 409, "Voter already exists."));
-    // }
-
     // Verify EC Volunteer biometric
     const volunteerProvided = await EC_Volunteer.findOne({
       where: {
@@ -45,6 +36,7 @@ export const handleVoterRegistration = async (req, res) => {
       biometric_right: encryptedRightThumb,
       biometric_left: encryptedLeftThumb,
       verifiedByVolunteer: verifiedByVolunteer,
+      imageUrl: req.file.path,
     });
 
     return res

@@ -12,16 +12,13 @@ import {
 
 const router = express.Router();
 
-// router.get("/eligible-positions", voterAuthentication, getEligibleCandidates);
-// router.post("/voter-commitment", voterAuthentication, storingCommitment);
-
 router.post(
   "/login",
   authenticateUser,
   verifierIsStaff,
   decryptMiddleware,
   handleVoterSession
-); // decryptMiddleware,
+); 
 router.post(
   "/cast",
   authenticateUser,
@@ -29,6 +26,6 @@ router.post(
   decryptMiddleware,
   sessionValidationMW,
   handleCastVote
-); // decryptMiddleware
+);
 
 export default router;
