@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useEvmStore } from "../store/zustand";
+import useEvmStore  from "../context/zustand";
 
 const Warning = () => {
     const navigate = useNavigate();
