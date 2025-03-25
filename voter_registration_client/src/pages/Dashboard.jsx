@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import AuthContext from '../context/AuthContext';
 
 function Dashboard() {
     const navigate = useNavigate();
     const [voterId, setVoterId] = useState("");
+    const {GetStudentDetail} = useContext(AuthContext);
+    
+    const handleClick = async () => {
+        try {
+            const response = await GetStudentDetail(voterId);
+        } catch (error) {
+            toast.error("Student not found");
+        }
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100 items-center justify-center">
@@ -22,7 +32,7 @@ function Dashboard() {
                     />
                 </div>
                 <button 
-                    onClick={GetStudentDetail} 
+                    onClick={handleClick} 
                     className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
                 >
                     Get Student Detail

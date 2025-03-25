@@ -20,17 +20,16 @@ import jwt from "jsonwebtoken";
  */
 export const handleVoterSession = async (req, res) => {
   try {
-    const { voterId } = req.decryptedData; // will be replaced by req.decryptedData
+    const { voterId } = req.params; 
 
+    console.log("Voter ID = ", voterId);
     const voter = await Voter.findOne({ where: { voterId } });
     if (!voter) {
       return res
         .status(404)
         .json(formatResponse(false, null, 404, "Voter not found."));
     }
-
-    console.log("voter = ", voter);
-
+    console.log("voter =", voter.voterId);
     if (!voter.verifiedByVolunteer || !voter.verifiedByStaff) {
       return res
         .status(403)
@@ -52,13 +51,17 @@ export const handleVoterSession = async (req, res) => {
     }); // change to one minute
     const candidateInformation = await fetchCandidateInfo(voter);
 
+    console.log("sending token");
+
     // Store session token in a secure cookie
     res.cookie("sessionToken", sessionToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-      maxAge: 1500000, // 1 minute
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
+      maxAge: 7500000, // 1 minute
     });
+
+    console.log("sent token");
 
     return res.status(200).json(
       formatResponse(
@@ -66,9 +69,14 @@ export const handleVoterSession = async (req, res) => {
         {
           message: "Session established.",
           sessionToken: sessionToken, // for now only [testing, postman]
-          biometric_left: voter.biometric_left,
-          biometric_right: voter.biometric_right,
-          candidates: candidateInformation,
+          voter: {
+            id: voter.id,
+            name: voter.name,
+            biometric_left: voter.biometric_left,
+            biometric_right: voter.biometric_right,
+            imageUrl: voter.imageUrl,
+          },
+          candidateInformation
         },
         null,
         null

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { evmKey } from '../pages/EvmRegister'; 
+
 
 const axiosInstance = axios.create({
   baseURL: 'baseurl', // Replace with actual base URL
@@ -7,6 +7,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
 
 axiosInstance.interceptors.request.use(
   (config) => {

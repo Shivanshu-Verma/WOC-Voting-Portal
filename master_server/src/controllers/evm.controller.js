@@ -20,12 +20,11 @@ import crypto from "crypto"
  */
 export const handleEvmRegistration = async (req, res) => {
   const { room, clientPublicKey } = req.body;
-  const verifiedByStaff = req.verifiedByStaff;
   const ip = req.ip; // Extract IP from request
 
   console.log(req.body);
 
-  if (!room || !verifiedByStaff) {
+  if (!room) {
     return res
       .status(400)
       .json(formatResponse(false, null, 400, "Missing required fields."));
@@ -33,19 +32,8 @@ export const handleEvmRegistration = async (req, res) => {
 
   try {
     // Find staff and verify biometric
-    const staff = await EC_Staff.findOne({ where: { id: verifiedByStaff } });
     // const staffs = await EC_Staff.findAll();
     // console.log(staffs)
-
-    if (!staff) {
-      console.log(verifiedByStaff);
-      return res
-        .status(404)
-        .json(
-          formatResponse(false, null, 404, "Staff not found for verification.")
-        );
-    }
-
     const prime =
       "eb984f6801b55ce41ccfc793ce2cf98122486e47afd51b31ffdbe26b816b0d5d851acdfcf5d84c786cbf41c6ea77d8e3f26beaeeb6147509a19fe4ce9e2f241448a3f05c08679b50fa7a4bce264757a506e5140fdb9be043f912f0c5c8f1419daf5f6307c83baa7d2c949be489cb1de4fa9f6c37bac1d4b4ce22f08704d40840c74f2fad51f9b5bc127259dc192f047bcc3d9bacbc01ec7916f842c1181e5b5c4c5375d057cb6912fbb51c454a0586d5a5af4777ef2c9e30867c0a40ab40e72b93a7856a5e58eaf377d4b731571b3e57baebab1db14ddb743e6496c2386647839c8702bbad5ec0c52c7d809ccd1a7289380e6489817fb1fa8fa557a8ae1c8ad7";
     const generator = "02";
@@ -57,8 +45,8 @@ export const handleEvmRegistration = async (req, res) => {
     const sharedSecret = server.computeSecret(
       Buffer.from(clientPublicKey, "hex")
     );
-
-    console.log("sharedSecret = ", sharedSecret);
+    console.log("here....");
+    console.log("sharedSecret = ", sharedSecret.toString("hex"));
 
     // Generate EVM ID
     const evmId = uuidv4(); // [No uniqueness check yet]
@@ -80,13 +68,17 @@ export const handleEvmRegistration = async (req, res) => {
     encryptedEvmKey += cipher.final("hex");
 
     // Store in database
-    await EVM.create({
+    const evm = await EVM.create({
       id: evmId,
       room,
       ip,
       health: 100, // Default health status
-      verifiedByStaff,
+      verifiedByStaff: req.verifier.id,
     });
+
+    console.log("evm created = ", evm);
+
+    console.log("Server Public Key  = ",  serverPublicKey.toString("hex"));
 
     return res.status(201).json(
       formatResponse(

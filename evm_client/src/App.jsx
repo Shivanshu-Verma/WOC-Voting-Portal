@@ -13,6 +13,7 @@ import { Toaster } from 'react-hot-toast';
 
 const AppRoutes = () => {
   const evmId = useEvmStore((state) => state.evmId);
+  
   useEffect(() => {
     document.addEventListener('contextmenu', (event) => event.preventDefault()); // Disable right-click
 

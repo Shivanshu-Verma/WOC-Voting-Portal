@@ -4,7 +4,7 @@ import useUserStore from "./zustand";
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const base_url = "http://localhost:5000";//TODO:Change with backend url
+const base_url = import.meta.env.VITE_BACKEND_URL;
 
 const AuthContext = createContext();
 
@@ -19,8 +19,10 @@ export const AuthProvider = ({ children }) => {
 
   const LoginVolunteer = async (data) => {    
     try {
-      const responce = await axios.post(`${base_url}/loginVolunteer`, {
+      const responce = await axios.post(`${base_url}/ec/login/volunteer`, {
         ...data
+      },{
+        withCredentials: true
       });
       if (responce.status === 200) {
         setUser({ role:'voter' , ...responce.data});
@@ -73,9 +75,9 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const GetStudentDetail = async () => {
+  const GetStudentDetail = async (voterId) => {
     try {
-        const response = await axios.get(`${base_url}/getStudentDetail/${voterId}`);
+        const response = await axios.get(`${base_url}/voter/get/${voterId}`);
         if (response.status === 200) {
           if(user.role === "volunteer"){
             navigate("/add-voter", { state: { voterInfo:response.data } });

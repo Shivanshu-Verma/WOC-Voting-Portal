@@ -6,7 +6,7 @@ import { formatResponse } from "../utils/formatApiResponse.js";
 export const authenticateUser = async (req, res, next) => {
   try {
     // Extract token from cookie
-    const token = req.cookies.auth_token;
+    const token = req.cookies?.auth_token;
     if (!token) {
       return res
         .status(401)
@@ -53,7 +53,7 @@ export const verifierIsStaff = async (req, res, next) => {
       .status(403)
       .json(formatResponse(false, null, 403, "Unauthorized request"));
   }
-
+  console.log("just passing...")
   next()
 };
 
