@@ -5,13 +5,13 @@ import {
   verifyVoter,
   addPositions,
 } from "../controllers/voter.controller.js";
-import { authenticateUser, verifierIsVolunteer, verifierIsStaff } from "../middlewares/auth.middleware.js";
+import { authenticateUser, verifierIsVolunteer } from "../middlewares/auth.middleware.js";
+import upload from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.post("/register", handleVoterRegistration);
-router.get("/:id", authenticateUser, getVoterById); // mw check
-router.post("/verify", authenticateUser, verifierIsStaff, verifyVoter);
-router.post("/add-positions/:id", authenticateUser, addPositions);
+router.post("/register", authenticateUser, verifierIsVolunteer, upload.single("image"), handleVoterRegistration);
+router.get("/get/:id", authenticateUser, verifierIsVolunteer, getVoterById);
+router.post("/verify-voter", authenticateUser, verifyVoter);
 
 export default router;

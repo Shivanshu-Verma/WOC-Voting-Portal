@@ -13,6 +13,9 @@ export const EC_Staff = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    contact: {
+      type: DataTypes.STRING,
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,

@@ -7,8 +7,7 @@ import jwt from "jsonwebtoken"
 
 // take admin biometrics
 export const handleEcStaffRegistration = async (req, res) => {
-  const { id, name, password, biometric } = req.body; // add contact
-  // console.log(req.body);
+  const { id, name, password, biometric, contact } = req.body; // add contact
   try {
     const staffExist = await EC_Staff.findOne({
       where: {
@@ -35,6 +34,7 @@ export const handleEcStaffRegistration = async (req, res) => {
       password: hashedPassword,
       biometric_right: encryptedRightThumb,
       biometric_left: encryptedLeftThumb,
+      contact: contact,
     });
 
     const staffs = await EC_Staff.findAll(); // dont send password
