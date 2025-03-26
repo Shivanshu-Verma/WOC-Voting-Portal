@@ -77,18 +77,25 @@ export const handleCandidateRegistration = async (req, res) => {
       );
   }
 };
-
 export const verifyCandidate = async (req, res) => {
   const { id, verifiedByStaff } = req.body;
 
   try {
     const candidate = await Candidate.findOne({ where: { id } });
 
-    const staffExist = await EC_Staff({ where: { id: verifiedByStaff } });
+    if (!candidate) {
+      return res.status(404).json(formatResponse(false, null, 404, "Candidate Not Found"));
+    }
+
+    const staffExist = await EC_Staff.findOne({ where: { id: verifiedByStaff } });
 
     if (!staffExist) {
-      res.status(404).json(formatResponse(false, null, 404, "Staff Not Found"));
+      return res.status(404).json(formatResponse(false, null, 404, "Staff Not Found"));
     }
+
+    // Find the max basis and assign next number
+    const maxBasis = await Candidate.max("basis");
+    candidate.basis = maxBasis ? maxBasis + 1 : 1;
 
     candidate.verifiedByStaff = verifiedByStaff;
 
@@ -99,7 +106,7 @@ export const verifyCandidate = async (req, res) => {
       .json(
         formatResponse(
           true,
-          { message: "Candidate verified successfully", voter },
+          { message: "Candidate verified successfully", candidate },
           null,
           null
         )
@@ -109,25 +116,7 @@ export const verifyCandidate = async (req, res) => {
     return res
       .status(500)
       .json(
-        formatResponse(
-          false,
-          null,
-          500,
-          error.message || "Internal Server Error"
-        )
+        formatResponse(false, null, 500, error.message || "Internal Server Error")
       );
   }
 };
-
-/**
- * Basis:
- * whenever new candidate registers, he will have id++.
- * After registerations end say there are 4 candidates for a given pos, the "basis" will be
- * 0 0 0 1 for candidate with id 1
- * 0 0 1 0 for id 2
- * 0 1 0 0 for id 3
- * 1 0 0 0 for id 4
- * We may change the corresponding basis to id maps
- * After registeration process is complete, the "calculateBasis" function is called [make function in imdex.js]
- *
- */

@@ -57,7 +57,7 @@ export const handleVoterSession = async (req, res) => {
     res.cookie("sessionToken", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "None",
+      sameSite: "Strict",
       maxAge: 7500000, // 1 minute
     });
 
@@ -129,6 +129,14 @@ export const handleCastVote = async (req, res) => {
         evm: req.evm.id,
         commitment: commitment.commitment,
       });
+
+      /**
+       * [
+       * {
+       * position: "position",
+       * commitment: "10, 26, 98"
+       * }]
+       */
 
       console.log("New Commitment Created = ", newCommit);
     }

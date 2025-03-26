@@ -3,6 +3,23 @@ import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import toast from "react-hot-toast";
 import useEvmStore from "../context/zustand";
+// import axios from "axios";
+// let axiosInstance = axios.create({
+//   baseURL: base_url,
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+// });
+
+// const updateAxiosWithEvmId = (evmKey) => {
+//   console.log("Updated axios with EVM key:", evmKey);
+
+//   if (evmKey) {
+//     axiosInstance.defaults.headers.common['x-evm-id'] = evmKey;
+//   } else {
+//     delete axiosInstance.defaults.headers.common['x-evm-id'];
+//   }
+// };
 
 const VoterLogin = () => {
   const [part1, setPart1] = useState("");
@@ -12,9 +29,11 @@ const VoterLogin = () => {
 
   const [fingerprint, setFingerprint] = useState(null);
   const { GetStudentDetail } = useContext(AuthContext);
+  const [voter, setVoter] = useState({})
   const navigate = useNavigate();
   const setEvmId = useEvmStore((state) => state.setEvmId);
-
+  const evmId = useEvmStore((state) => state.evmId);
+  // updateAxiosWithEvmId(evmId)
   const handleClick = async () => {
     if (![part1, part2, part3, part4].every(part => part && part.trim())) {
       toast.error("Please select all parts of your Voter ID");
@@ -26,10 +45,10 @@ const VoterLogin = () => {
   
     try {
       const response = await GetStudentDetail(voterId);
-      console.log(response);
       
       if (response) {
         const { biometric_left, biometric_right, imageUrl, name } = response.Data.voter;
+        // console.log(response?.Data);
   
         if (!biometric_left || !biometric_right) {
           toast.warning("Incomplete biometric data found.");
@@ -39,7 +58,7 @@ const VoterLogin = () => {
           left: biometric_left || null,
           right: biometric_right || null,
         });
-  
+        setVoter(response?.Data);
       } else {
         toast.error("No data found for the given Voter ID.");
       }
@@ -51,7 +70,9 @@ const VoterLogin = () => {
     }
   };
   const verifyFingerprint = () => {
-    navigate("/cast-vote");
+    console.log(voter);
+    
+    navigate("/cast-vote", { state: { data: voter } });
   }
 
   return (

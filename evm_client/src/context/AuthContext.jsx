@@ -57,6 +57,7 @@ export const AuthProvider = ({ children }) => {
         toast.error("Student Detail Fetch Failed");
         return null;
       }
+      return response.data
     } catch (error) {
       console.error("Error fetching student details:", error);
       toast.error("Student Detail Fetch Failed");
