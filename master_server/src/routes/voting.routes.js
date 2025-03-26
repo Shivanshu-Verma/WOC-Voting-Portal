@@ -12,6 +12,9 @@ import {
 
 const router = express.Router();
 
+// router.get("/eligible-positions", voterAuthentication, getEligibleCandidates);
+// router.post("/voter-commitment", voterAuthentication, storingCommitment);
+
 router.post(
   "/login",
   authenticateUser,

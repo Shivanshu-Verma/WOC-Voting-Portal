@@ -9,7 +9,6 @@ function ECLoginPage() {
 
   const onSubmit = async (data) => {
     try {
-      console.log(data);
       await LoginEcMember(data);
     } catch (error) {
       toast.error('Login Failed');
@@ -24,8 +23,8 @@ function ECLoginPage() {
           <div className="mb-4">
             <label className="block text-gray-700">Email</label>
             <input 
-              type="email"
-              {...register("email", { required: "Email is required" })} 
+              type="id"
+              {...register("id", { required: "Email is required" })} 
               className="w-full p-2 border border-gray-300 rounded mt-1" 
             />
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}

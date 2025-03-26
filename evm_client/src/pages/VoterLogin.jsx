@@ -2,6 +2,24 @@ import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import toast from "react-hot-toast";
+import useEvmStore from "../context/zustand";
+// import axios from "axios";
+// let axiosInstance = axios.create({
+//   baseURL: base_url,
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+// });
+
+// const updateAxiosWithEvmId = (evmKey) => {
+//   console.log("Updated axios with EVM key:", evmKey);
+
+//   if (evmKey) {
+//     axiosInstance.defaults.headers.common['x-evm-id'] = evmKey;
+//   } else {
+//     delete axiosInstance.defaults.headers.common['x-evm-id'];
+//   }
+// };
 
 const VoterLogin = () => {
   const [part1, setPart1] = useState("");
@@ -11,25 +29,50 @@ const VoterLogin = () => {
 
   const [fingerprint, setFingerprint] = useState(null);
   const { GetStudentDetail } = useContext(AuthContext);
+  const [voter, setVoter] = useState({})
   const navigate = useNavigate();
-
+  const setEvmId = useEvmStore((state) => state.setEvmId);
+  const evmId = useEvmStore((state) => state.evmId);
+  // updateAxiosWithEvmId(evmId)
   const handleClick = async () => {
-    if (!part1 || !part2 || !part3 || !part4) {
+    if (![part1, part2, part3, part4].every(part => part && part.trim())) {
       toast.error("Please select all parts of your Voter ID");
       return;
     }
-
-    const voterId = `${part1}${part2}${part3}${part4}`;
-    setFingerprint("temp");
-
-    // const response = await GetStudentDetail(voterId);
-    // if (response?.fingerprint) {
-    //   setFingerprint(response.fingerprint);
-    // }
+  
+    const voterId = `${part1.trim()}${part2.trim()}${part3.trim()}${part4.trim()}`;
+    console.log("Voter ID:", voterId);
+  
+    try {
+      const response = await GetStudentDetail(voterId);
+      
+      if (response) {
+        const { biometric_left, biometric_right, imageUrl, name } = response.Data.voter;
+        // console.log(response?.Data);
+  
+        if (!biometric_left || !biometric_right) {
+          toast.warning("Incomplete biometric data found.");
+        }
+  
+        setFingerprint({
+          left: biometric_left || null,
+          right: biometric_right || null,
+        });
+        setVoter(response?.Data);
+      } else {
+        toast.error("No data found for the given Voter ID.");
+      }
+    } catch (error) {
+      console.error("Error fetching student details:", error);
+      toast.error("Failed to fetch student details. Please try again.");
+      setEvmId(null);
+      navigate('/')
+    }
   };
-
   const verifyFingerprint = () => {
-    navigate("/cast-vote");
+    console.log(voter);
+    
+    navigate("/cast-vote", { state: { data: voter } });
   }
 
   return (
@@ -41,35 +84,32 @@ const VoterLogin = () => {
         {/* Dropdown 1 */}
         <select value={part1} onChange={(e) => setPart1(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 1</option>
-          <option value="AB12">B</option>
-          <option value="XY34">M</option>
-          <option value="MN56">P</option>
+          <option value="B">B</option>
+          <option value="M">M</option>
+          <option value="P">P</option>
         </select>
 
         {/* Dropdown 2 */}
         <select value={part2} onChange={(e) => setPart2(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 2</option>
-          <option value="5678">20</option>
-          <option value="1234">21</option>
-          <option value="8765">22</option>
-          <option value="8765">23</option>
-          <option value="8765">24</option>
+          <option value="20">20</option>
+          <option value="21">21</option>
+          <option value="22">22</option>
+          <option value="23">23</option>
         </select>
 
         {/* Dropdown 3 */}
         <select value={part3} onChange={(e) => setPart3(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 3</option>
-          <option value="X1">BB</option>
-          <option value="Y2">CS</option>
-          <option value="Z3">CH</option>
+          <option value="BB">BB</option>
+          <option value="CS">CS</option>
+          <option value="CH">CH</option>
         </select>
 
         {/* Dropdown 4 */}
         <select value={part4} onChange={(e) => setPart4(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 4</option>
-          <option value="90">90</option>
-          <option value="87">87</option>
-          <option value="65">65</option>
+          <option value="88">88</option>
         </select>
       </div>
 

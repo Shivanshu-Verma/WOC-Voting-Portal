@@ -20,12 +20,11 @@ import crypto from "crypto"
  */
 export const handleEvmRegistration = async (req, res) => {
   const { room, clientPublicKey } = req.body;
-  const verifiedByStaff = req.verifiedByStaff;
   const ip = req.ip; // Extract IP from request
 
   console.log(req.body);
 
-  if (!room || !verifiedByStaff) {
+  if (!room) {
     return res
       .status(400)
       .json(formatResponse(false, null, 400, "Missing required fields."));
@@ -74,13 +73,17 @@ export const handleEvmRegistration = async (req, res) => {
     encryptedEvmKey += cipher.final("hex");
 
     // Store in database
-    await EVM.create({
+    const evm = await EVM.create({
       id: evmId,
       room,
       ip,
       health: 100, // Default health status
-      verifiedByStaff,
+      verifiedByStaff: req.verifier.id,
     });
+
+    console.log("evm created = ", evm);
+
+    console.log("Server Public Key  = ",  serverPublicKey.toString("hex"));
 
     return res.status(201).json(
       formatResponse(
