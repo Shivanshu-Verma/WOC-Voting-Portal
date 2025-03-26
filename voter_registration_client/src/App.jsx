@@ -14,6 +14,7 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<VolunteerLoginPage />} />
           <Route path="/login-volunteer" element={<VolunteerLoginPage />} />
           <Route path="/login-ec" element={<ECLoginPage />} />
           <Route

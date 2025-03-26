@@ -17,6 +17,7 @@ export const fetchCandidateInfo = async (voter) => {
         const candidates = await Candidate.findAll({
             where: {
                 position: voter.allowedPositions,
+                verifiedByStaff: { $ne: null }, 
             },
         });
 

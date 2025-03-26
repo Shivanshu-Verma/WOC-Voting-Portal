@@ -3,6 +3,7 @@ import {
   handleVoterRegistration,
   getVoterById,
   verifyVoter,
+  addPositions,
 } from "../controllers/voter.controller.js";
 import { authenticateUser, verifierIsVolunteer } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";

@@ -5,19 +5,26 @@ export const decryptMiddleware = async (req, res, next) => {
   try {
     // Get evmID from headers
     const evmId = req.headers['x-evm-id'];
+
     if (!evmId) {
       return res.status(400).json({ message: "Missing evmId in headers" });
     }
-    console.log("req.body = ", req.body);
+
+    console.log("evmId = ", evmId)
     const evm = await EVM.findOne({
       where: {
         id: evmId,
       }
     })
 
+    console.log("herer...")
+
     if (!evm) {
+      console.log("EVM not found");
       return res.status(404).json({ message: "EVM not found" });
     }
+
+    console.log("evm = ", evm);
 
     req.evm = evm;
     // Assume req.body is an encrypted JSON string.
