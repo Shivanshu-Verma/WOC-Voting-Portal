@@ -10,6 +10,7 @@ import candidateRouter from "./routes/candidate.routes.js"
 import evmRouter from "./routes/evm.routes.js"
 import voterRouter from "./routes/voter.routes.js"
 import votingRouter from "./routes/voting.routes.js"
+import dbRouter from "./routes/db.routes.js"
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -37,5 +38,7 @@ app.use("/api/candidate", candidateRouter)
 app.use("/api/voter", voterRouter);
 app.use("/api/evm", evmRouter);
 app.use("/api/vote-cast", votingRouter);
+app.use("/api/db", dbRouter);
+
 
 export default app;
