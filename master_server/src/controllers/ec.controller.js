@@ -148,7 +148,7 @@ export const handleEcVolunteerRegistration = async (req, res) => {
 
 export const handleEcStaffLogin = async (req, res) => {
   const { id, password } = req.body;
-
+  
   try {
     // Check if staff exists
     const staff = await EC_Staff.findOne({ where: { id } });

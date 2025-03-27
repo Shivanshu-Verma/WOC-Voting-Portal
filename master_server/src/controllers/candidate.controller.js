@@ -56,7 +56,7 @@ export const handleCandidateRegistration = async (req, res) => {
       biometric_right: encryptedRightThumb,
       biometric_left: encryptedLeftThumb,
       verfiedByVolunteer: verifiedByVolunteer,
-      imageUrl: req.file.path,
+      imageUrl: req.file?.path,
     });
 
     return res
@@ -78,8 +78,17 @@ export const handleCandidateRegistration = async (req, res) => {
       );
   }
 };
+
+
 export const verifyCandidate = async (req, res) => {
-  const { id, verifiedByStaff } = req.body;
+  const { id } = req.params;
+
+  // Ensure req.verifier exists
+  if (!req.verifier || !req.verifier.id) {
+    return res.status(403).json(formatResponse(false, null, 403, "Unauthorized request"));
+  }
+
+  const verifiedByStaff = req.verifier.id;
 
   try {
     const candidate = await Candidate.findOne({ where: { id } });
@@ -94,10 +103,14 @@ export const verifyCandidate = async (req, res) => {
       return res.status(404).json(formatResponse(false, null, 404, "Staff Not Found"));
     }
 
-    // Find the max basis and assign next number
+    // Find the max basis and assign the next number
     const maxBasis = await Candidate.max("basis");
-    candidate.basis = maxBasis ? maxBasis + 1 : 1;
 
+    // Ensure maxBasis is treated as a number before incrementing
+    const numMaxBasis = maxBasis ? parseInt(maxBasis, 10) || 0 : 0;
+    const newBasis = String(numMaxBasis + 1); // Convert back to string
+
+    candidate.basis = newBasis; // Store as a string
     candidate.verifiedByStaff = verifiedByStaff;
 
     await candidate.save();

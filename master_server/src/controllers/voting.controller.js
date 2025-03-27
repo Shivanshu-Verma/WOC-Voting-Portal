@@ -7,10 +7,10 @@ import jwt from "jsonwebtoken";
 
 export const handleVoterSession = async (req, res) => {
   try {
-    const { voterId } = req.params; 
+    const { id } = req.params; 
 
-    console.log("Voter ID = ", voterId);
-    const voter = await Voter.findOne({ where: { voterId } });
+    console.log("Voter ID = ", id);
+    const voter = await Voter.findOne({ where: {voterId: id } });
     if (!voter) {
       return res
         .status(404)
@@ -33,7 +33,7 @@ export const handleVoterSession = async (req, res) => {
     }
 
     // Generate session token
-    const sessionToken = jwt.sign({ voterId }, process.env.JWT_SECRET, {
+    const sessionToken = jwt.sign({ id }, process.env.JWT_SECRET, {
       expiresIn: "5m",
     }); // change to one minute
     const candidateInformation = await fetchCandidateInfo(voter);
@@ -57,7 +57,7 @@ export const handleVoterSession = async (req, res) => {
           message: "Session established.",
           sessionToken: sessionToken, // for now only [testing, postman]
           voter: {
-            id: voter.id,
+            id: voter.voterId,
             name: voter.name,
             biometric_left: voter.biometric_left,
             biometric_right: voter.biometric_right,
@@ -107,10 +107,11 @@ export const handleCastVote = async (req, res) => {
 
       /**
        * [
-       * {
-       * position: "position",
-       * commitment: "10, 26, 98"
-       * }]
+       *  {
+       *    position: "position",
+       *    commitment: "10, 26, 98"
+       *  } 
+       * ]
        */
 
       console.log("New Commitment Created = ", newCommit);
