@@ -1,4 +1,5 @@
 import { Candidate } from "../models/Candidate.js";
+import { Op } from "sequelize"; 
 
 /**
  * Fetches candidates that a given voter is eligible to vote for.
@@ -17,7 +18,7 @@ export const fetchCandidateInfo = async (voter) => {
         const candidates = await Candidate.findAll({
             where: {
                 position: voter.allowedPositions,
-                verifiedByStaff: { $ne: null }, 
+                verifiedByStaff: { [Op.ne]: null }, 
             },
         });
 

@@ -109,7 +109,7 @@ const VoterLogin = () => {
         {/* Dropdown 4 */}
         <select value={part4} onChange={(e) => setPart4(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 4</option>
-          <option value="88">88</option>
+          <option value="1088">88</option>
         </select>
       </div>
 

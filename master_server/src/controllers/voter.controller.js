@@ -37,7 +37,7 @@ export const handleVoterRegistration = async (req, res) => {
       biometric_right: encryptedRightThumb,
       biometric_left: encryptedLeftThumb,
       verifiedByVolunteer: verifiedByVolunteer,
-      imageUrl: req.file.path,
+      imageUrl: req.file?.path,
     });
 
     return res

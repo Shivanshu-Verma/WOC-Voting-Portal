@@ -45,7 +45,7 @@ function CastVote() {
           {candidates.map((candidate) => (
             <div key={candidate.id} className="flex items-center space-x-4 mb-2">
               <img
-                src={candidate.imageUrl || "https://via.placeholder.com/50"}
+                src={"https://images.wallpapersden.com/image/ws-daredevil-born-again-4k-backdrop_93147.jpg"}
                 alt={candidate.name}
                 className="w-12 h-12 rounded-full border"
               />
