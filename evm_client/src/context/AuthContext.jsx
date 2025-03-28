@@ -1,6 +1,5 @@
 import { createContext, use } from "react";
 import axios from "axios";
-import useUserStore from "./zustand";
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { axiosInstance } from '../pages/EvmRegister'
@@ -15,9 +14,10 @@ export default AuthContext;
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-  const ec = useUserStore((state) => state.ec);
-  const setEc = useUserStore((state) => state.setEc);
+  const ec = useEvmStore((state) => state.ec);
+  const setEc = useEvmStore((state) => state.setEc);
   const setEvmId = useEvmStore((state) => state.setEvmId);
+  const setNumVoteCast = useEvmStore((state) => state.setNumVoteCast);
 
   const LoginEcMember = async (data) => {
     try {
@@ -78,7 +78,9 @@ export const AuthProvider = ({ children }) => {
       
       if (responce.status === 200) {
         toast.success("voted casted successfully")
+        setNumVoteCast();
         navigate('/voter-login')
+
       }
       else{
         toast.error("error in vote cast")

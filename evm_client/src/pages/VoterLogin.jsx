@@ -112,7 +112,7 @@ const VoterLogin = () => {
           <option value="">Select Part 4</option>
           <option value="88">88</option>
           <option value="95">95</option>
-          <option value="96   ">96</option>
+          <option value="96">96</option>
         </select>
       </div>
 
