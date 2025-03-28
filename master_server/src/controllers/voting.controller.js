@@ -80,7 +80,7 @@ export const handleVoterSession = async (req, res) => {
 
 export const handleCastVote = async (req, res) => {
   try {
-    const voterId  = req.voterId; // Retrieved from middleware
+    const voterId = req.voterId; // Retrieved from middleware
     console.log("voterId = ", voterId);
     const { commitments } = req.body; // req.decryptedData
     console.log("commitments = ", commitments);
@@ -114,7 +114,7 @@ export const handleCastVote = async (req, res) => {
       const newCommit = await Commitment.create({
         position: commitment.position,
         evm: evm.id,
-        commitment: commitment.commitment,
+        commitment: String(commitment.commitment),
         voter: voterId,
       });
 
