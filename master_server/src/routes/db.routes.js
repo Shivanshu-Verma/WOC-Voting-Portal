@@ -1,11 +1,12 @@
 import express from "express";
-import { getAllVoters,
+import {
+    getAllVoters,
     getAllCandidates,
     getAllVolunteers,
     getAllStaff,
     getAllEVM,
     getAllCommitments
- } from "../controllers/db.controller";
+} from "../controllers/db.controller.js";
 
 const router = express.Router();
 

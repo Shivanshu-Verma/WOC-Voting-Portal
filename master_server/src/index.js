@@ -6,7 +6,7 @@ import { EC_Staff } from "./models/EC_Staff.js";
 import { EC_Volunteer } from "./models/EC_Volunteer.js";
 import { Candidate } from "./models/Candidate.js";
 import { Commitment } from "./models/Commitments.js";
-import EVM from "./models/EVM.js";
+import { EVM } from "./models/EVM.js";
 
 (async () => {
     try {
