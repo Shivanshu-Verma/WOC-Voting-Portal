@@ -4,13 +4,14 @@ import { decryptData, encryptForEVM } from "../utils/crypto.utils.js";
 import { fetchCandidateInfo } from "../utils/candidate.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 import jwt from "jsonwebtoken";
+import EVM from "../models/EVM.js";
 
 export const handleVoterSession = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
 
     console.log("Voter ID = ", id);
-    const voter = await Voter.findOne({ where: {voterId: id } });
+    const voter = await Voter.findOne({ where: { voterId: id } });
     if (!voter) {
       return res
         .status(404)
@@ -82,6 +83,7 @@ export const handleCastVote = async (req, res) => {
     const { voterId } = req; // Retrieved from middleware
     const { commitments } = req.body; // req.decryptedData
 
+    // Find the voter
     const voter = await Voter.findOne({ where: { voterId } });
     if (!voter) {
       return res
@@ -97,12 +99,21 @@ export const handleCastVote = async (req, res) => {
         );
     }
 
+    // Find the EVM
+    const evm = await EVM.findOne({ where: { id: req.evm.id } });
+    if (!evm) {
+      return res
+        .status(404)
+        .json(formatResponse(false, null, 404, "EVM not found."));
+    }
+
     // Store commitments
     for (const commitment of commitments) {
       const newCommit = await Commitment.create({
         position: commitment.position,
-        evm: req.evm.id,
+        evm: evm.id,
         commitment: commitment.commitment,
+        voter: voterId,
       });
 
       /**
@@ -113,9 +124,18 @@ export const handleCastVote = async (req, res) => {
        *  } 
        * ]
        */
-
       console.log("New Commitment Created = ", newCommit);
     }
+
+    // Add the voter to the EVM's buffer
+    const currentBuffer = evm.buffer || []; // Retrieve the current buffer (default to an empty array if null)
+    currentBuffer.push({
+      voter: voterId,
+      votedAt: new Date().toISOString(), // Use ISO string format for timestamps
+    });
+
+    // Update the EVM with the new buffer
+    await evm.update({ buffer: currentBuffer });
 
     // Mark voter as voted
     await voter.update({ hasVoted: true });
@@ -127,6 +147,89 @@ export const handleCastVote = async (req, res) => {
       );
   } catch (error) {
     console.error("Error during vote casting:", error);
+    return res
+      .status(500)
+      .json(formatResponse(false, null, 500, "Internal Server Error"));
+  }
+};
+
+
+export const checkpointEVM = async (req, res) => {
+  try {
+    const evmId = req.evm.id; // EVM ID from the route parameter
+    const { randomVector } = req.body;
+    const currentTimestamp = new Date();
+
+    // Validate randomVector schema
+    if (
+      !Array.isArray(randomVector) ||
+      randomVector.some(
+        (entry) =>
+          typeof entry !== "object" ||
+          !entry.position ||
+          !entry.randomVector
+      )
+    ) {
+      return res
+        .status(400)
+        .json(
+          formatResponse(
+            false,
+            null,
+            400,
+            "Invalid randomVector format. Each entry must have 'position' and 'randomVector'."
+          )
+        );
+    }
+
+    // Fetch EVM
+    const evm = await EVM.findByPk(evmId);
+    if (!evm) {
+      return res
+        .status(404)
+        .json(formatResponse(false, null, 404, "EVM not found."));
+    }
+
+    // Check buffer size
+    if (evm.buffer.length < 10) {
+      return res
+        .status(429)
+        .json(
+          formatResponse(
+            false,
+            null,
+            429,
+            "Buffer has less than 10 entries. Please wait before checkpointing."
+          )
+        );
+    }
+
+    // Filter buffer to remove entries older than the current timestamp
+    const filteredBuffer = evm.buffer.filter(
+      (entry) => new Date(entry.votedAt) >= currentTimestamp
+    );
+
+    // Update the EVM buffer
+    evm.buffer = filteredBuffer;
+
+    // Update randomVector in EVM table
+    evm.randomVector = randomVector;
+
+    // Save updates
+    await evm.save();
+
+    return res
+      .status(200)
+      .json(
+        formatResponse(
+          true,
+          { message: "Checkpointing successful.", randomVector },
+          null,
+          null
+        )
+      );
+  } catch (error) {
+    console.error("Error during checkpointing:", error);
     return res
       .status(500)
       .json(formatResponse(false, null, 500, "Internal Server Error"));

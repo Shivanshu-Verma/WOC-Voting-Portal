@@ -1,148 +1,120 @@
-import "dotenv/config";
 import express from "express";
-import bodyParser from "body-parser";
+import { EVM } from "./models/EVM.js";
+import { Commitment } from "./models/Commitment.js";
+import { authenticateUser, verifierIsStaff } from "./middlewares/auth.middleware.js";
 import { decryptMiddleware } from "./middlewares/decryption.middleware.js";
-import { Commitment } from "./models/Commitments.js";
-import { sequelize } from "./db/db.js";
-import { Op } from "sequelize";
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
-const receivedVectors = {}; // Store vectors in memory
-const evmIdsSubmitted = {}; // Store EVM IDs and their submission time
-let timerStarted = false;
-let shutdownTimer = null;
+const processedEVMs = new Set(); // Track processed EVMs
 
-app.post("/api/result/send-vectors", decryptMiddleware, async (req, res) => {
-  const { evmId, vectors } = req.body; // req.decryptedData
+// Open the route for 1 minute
+app.post("/send-vecs", authenticateUser, verifierIsStaff, decryptMiddleware, async (req, res) => {
+  const evmId = req.evm.id;
+  const { randomVector } = req.body; // req.decryptedData
 
-  if (!evmId || !Array.isArray(vectors)) {
-    return res.status(400).json({ error: "Invalid input format" });
+  // Validate randomVector schema
+  if (
+    !Array.isArray(randomVector) ||
+    randomVector.some(
+      (entry) =>
+        typeof entry !== "object" ||
+        !entry.position ||
+        !entry.randomVector ||
+        !entry.randomVector.split(",").every((val) => !isNaN(parseInt(val, 10)))
+    )
+  ) {
+    return res.status(400).json({ error: "Invalid randomVector format." });
   }
 
-  // Validate each vector entry
-  for (let vectorObj of vectors) {
-    const { position, vector } = vectorObj;
-    if (!position || typeof vector !== "string") {
-      return res.status(400).json({ error: "Invalid vector entry" });
-    }
+  // Check if EVM has already responded
+  if (processedEVMs.has(evmId)) {
+    return res.status(200).json({ message: "EVM already processed." });
   }
 
-  try {
-    // Store the EVM ID and the current time to track when it last submitted vectors
-    evmIdsSubmitted[evmId] = new Date();
-
-    // Process the vectors and store them by position
-    vectors.forEach(({ position, vector }) => {
-      if (!receivedVectors[position]) {
-        receivedVectors[position] = [];
-      }
-      receivedVectors[position].push(vector.split(",").map(Number)); // Store vector as an array of numbers
-    });
-
-    if (!timerStarted) {
-      timerStarted = true;
-      shutdownTimer = setTimeout(processResults, 60 * 1000); // dies in one minute
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Database error:", error);
-    res.status(500).json({ error: "Internal server error" });
+  const evm = await EVM.findByPk(evmId);
+  if (!evm) {
+    return res.status(404).json({ error: "EVM not found." });
   }
+
+  // Process buffer for outdated entries
+  const currentTimestamp = new Date();
+  evm.buffer = evm.buffer.filter(
+    (entry) => new Date(entry.votedAt) >= currentTimestamp
+  );
+
+  // Assign new random vector
+  evm.randomVector = randomVector;
+  await evm.save();
+
+  processedEVMs.add(evmId); // Mark EVM as processed
+  res.status(200).json({ message: "Checkpoint successful." });
 });
 
-async function processResults() {
-  console.log("Processing results...");
-  console.log("recievedVecs = ", receivedVectors);
-  console.log("evmIdsSub = ", evmIdsSubmitted);
+// Start server temporarily
+const server = app.listen(3000, () => {
+  console.log("Result route open on port 3000.");
+});
 
-  if (Object.keys(receivedVectors).length === 0) {
-    console.log("No vectors received. Shutting down.");
-    process.exit(0);
+setTimeout(async () => {
+  console.log("Closing result route...");
+  server.close();
+
+  const evms = await EVM.findAll();
+  const result = {};
+  const summedRandomVectors = {};
+
+  // Sum random vectors for all EVMs
+  for (const evm of evms) {
+    evm.randomVector.forEach(({ position, randomVector }) => {
+      const vectorArray = randomVector.split(",").map((val) => parseInt(val, 10));
+      if (!summedRandomVectors[position]) {
+        summedRandomVectors[position] = Array(vectorArray.length).fill(0);
+      }
+      summedRandomVectors[position] = summedRandomVectors[position].map(
+        (sum, index) => sum + (vectorArray[index] || 0)
+      );
+    });
   }
 
-  const finalResults = {}; // Store final results per position
+  // Process EVM buffers and commitments
+  for (const evm of evms) {
+    result[evm.id] = { processedCommitments: [] };
 
-  const oneMinuteAgo = new Date(new Date() - 1 * 60 * 1000); // Get the timestamp for 1 minute ago
+    // Check for remaining data points in buffer
+    const remainingBuffer = evm.buffer;
+    for (const { voter, votedAt } of remainingBuffer) {
+      const commitment = await Commitment.findOne({
+        where: { evm: evm.id, voter },
+      });
 
-  // Remove EVMs that haven't sent data in the last 1 minute
-  Object.keys(evmIdsSubmitted).forEach((evmId) => {
-    if (evmIdsSubmitted[evmId] < oneMinuteAgo) {
-      delete evmIdsSubmitted[evmId];
+      if (commitment) {
+        await commitment.destroy(); // Delete the commitment
+        result[evm.id].processedCommitments.push({ voter, votedAt });
+      }
     }
-  });
 
-  //   console.log("evmIdsSub2 = ", evmIdsSubmitted);
+    // Adjust commitments for each position
+    const commitments = await Commitment.findAll({ where: { evm: evm.id } });
+    for (const commitment of commitments) {
+      const position = commitment.position;
+      const summedVector = summedRandomVectors[position];
+      if (!summedVector) continue;
 
-  // Iterate through each position's vectors
-  for (const [position, vectors] of Object.entries(receivedVectors)) {
-    // console.log("in loop");
-    if (vectors.length === 0) continue;
-
-    // Retrieve commitment entries for the current position that belong to EVMs who submitted vectors within the last 1 minute
-    const commitmentEntries = await Commitment.findAll({
-      where: {
-        position: position,
-        evm: { [Op.in]: Object.keys(evmIdsSubmitted) }, // Filter by EVM IDs that submitted vectors
-      },
-    });
-
-    // console.log("commitmentEnt = ", commitmentEntries);
-
-    // Initialize result vector for this position with commitment data
-    let resultVector = new Array(commitmentEntries[0]?.commitment.split(",").length).fill(0);
-
-    // Process each commitment for the current position
-    commitmentEntries.forEach((commitment) => {
-      // console.log("commitment = ", commitment);
-      const commitmentVector = commitment.commitment
+      const commitmentArray = commitment.commitment
         .split(",")
-        .map((value) => parseInt(value.trim(), 10));
+        .map((val) => parseInt(val, 10));
+      const adjustedCommitment = commitmentArray.map(
+        (val, index) => val - (summedVector[index] || 0)
+      );
 
-      // console.log("commitmentVec = ", commitmentVector);
-
-      //   if (resultVector.length === 0) {
-      //     console.log("was empty");
-      //     resultVector = commitmentVector.slice(); // Copy the first commitment vector
-      //   }
-
-      // console.log("res vec = ", resultVector);
-
-      // add the vector for each commitment
-      for (let i = 0; i < commitmentVector.length; i++) {
-        // console.log("i = ", i);
-        resultVector[i] += commitmentVector[i];
-        // console.log("res vec for this i = ", resultVector);
-      }
-    });
-
-    // console.log("init result vec = ", resultVector);
-
-    // Process the vectors received for this position
-    vectors.forEach((vector) => {
-      for (let i = 0; i < vector.length; i++) {
-        resultVector[i] -= vector[i]; // Subtract incoming vector
-      }
-    });
-
-    finalResults[position] = resultVector;
+      commitment.commitment = adjustedCommitment.join(",");
+      await commitment.save();
+    }
   }
 
-  // Log the final results per position
-  console.log("Final results per position:", finalResults);
-
-  // If you want to save these results, send them to the database, or notify another system, you can do it here.
-
-  process.exit(0); // Exit after processing
-}
-
-sequelize.sync().then(() => {
-  // await connectDB();
-  app.listen(3000, () => console.log("Server running on port 3000"));
-});
-
-/**
- * 
- */
+  console.log("Final result object:", result);
+  console.log("Summed Random Vectors:", summedRandomVectors);
+  process.exit(); // End the script
+}, 60000); // Run for 1 minute

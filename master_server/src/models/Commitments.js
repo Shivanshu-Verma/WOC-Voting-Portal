@@ -22,6 +22,14 @@ export const Commitment = sequelize.define(
             },
             // onDelete: "CASCADE", // Ensures commitments get deleted if EVM is removed
         },
+        voter: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            reference: {
+                model: "Voter",
+                key: "voterId"
+            }
+        },
         commitment: {
             type: DataTypes.TEXT, // Changed from TSVECTOR to TEXT, as TSVECTOR is specific to Postgres full-text search
             allowNull: false,
