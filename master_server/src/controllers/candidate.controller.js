@@ -7,7 +7,7 @@ import { POSITIONS } from "../constants/positions.js";
 import { Candidate } from "../models/Candidate.js";
 import { EC_Staff } from "../models/EC_Staff.js";
 import { EC_Volunteer } from "../models/EC_Volunteer.js";
-import { decryptData, encryptData } from "../utils/crypto.utils.js";
+import { decryptData, encryptData, encryptBiometric } from "../utils/crypto.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 
 export const handleCandidateRegistration = async (req, res) => {
@@ -15,8 +15,8 @@ export const handleCandidateRegistration = async (req, res) => {
     req.body;
 
   try {
-    const encryptedRightThumb = encryptData(biometric.right);
-    const encryptedLeftThumb = encryptData(biometric.left);
+    const encryptedRightThumb = encryptBiometric(biometric.right);
+    const encryptedLeftThumb = encryptBiometric(biometric.left);
 
     const candidateExists = await Candidate.findOne({
       where: {

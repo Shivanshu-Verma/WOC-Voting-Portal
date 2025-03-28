@@ -1,7 +1,7 @@
 import { Voter } from "../models/Voter.js";
 import { EC_Staff } from "../models/EC_Staff.js";
 import { EC_Volunteer } from "../models/EC_Volunteer.js";
-import { encryptData, decryptData } from "../utils/crypto.utils.js";
+import { encryptData, decryptData, encryptBiometric } from "../utils/crypto.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 import { POSITIONS } from "../constants/positions.js";
 
@@ -15,8 +15,8 @@ export const handleVoterRegistration = async (req, res) => {
   }
 
   try {
-    const encryptedRightThumb = encryptData(biometric.right);
-    const encryptedLeftThumb = encryptData(biometric.left);
+    const encryptedRightThumb = encryptBiometric(biometric.right);
+    const encryptedLeftThumb = encryptBiometric(biometric.left);
 
     // Verify EC Volunteer biometric
     const volunteerProvided = await EC_Volunteer.findOne({

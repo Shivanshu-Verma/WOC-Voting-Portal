@@ -80,13 +80,14 @@ export const AuthProvider = ({ children }) => {
         toast.success("voted casted successfully")
         setNumVoteCast();
         navigate('/voter-login')
-
       }
       else{
         toast.error("error in vote cast")
       }
+      navigate('/voter-login')
     } catch (error) {
       toast.error("error in vote cast :axios error");
+      navigate('/voter-login')
     }
   }
 
