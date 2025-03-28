@@ -1,4 +1,4 @@
-import EVM from "../models/EVM.js";
+import { EVM } from "../models/EVM.js";
 import { decryptFromEVM } from "../utils/crypto.utils.js";
 
 export const decryptMiddleware = async (req, res, next) => {

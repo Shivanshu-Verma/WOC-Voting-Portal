@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../db/db.js";
 import { POSITIONS } from "../constants/positions.js";
-import EVM from "./EVM.js";
+import { EVM } from "./EVM.js";
 
 export const Commitment = sequelize.define(
     "Commitment",

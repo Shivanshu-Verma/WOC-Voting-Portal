@@ -4,7 +4,7 @@ import { decryptData, encryptForEVM } from "../utils/crypto.utils.js";
 import { fetchCandidateInfo } from "../utils/candidate.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 import jwt from "jsonwebtoken";
-import EVM from "../models/EVM.js";
+import { EVM } from "../models/EVM.js";
 
 export const handleVoterSession = async (req, res) => {
   try {

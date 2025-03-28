@@ -4,7 +4,7 @@ import { Voter } from "./Voter.js";
 import { POSITIONS } from "../constants/positions.js";
 
 
-const EVM = sequelize.define(
+export const EVM = sequelize.define(
     "EVM",
     {
         id: {
@@ -103,5 +103,3 @@ const EVM = sequelize.define(
         tableName: "EVM",
     }
 );
-
-export default EVM;

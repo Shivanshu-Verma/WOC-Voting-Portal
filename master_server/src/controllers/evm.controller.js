@@ -1,4 +1,4 @@
-import EVM from "../models/EVM.js";
+import { EVM } from "../models/EVM.js";
 import { EC_Staff } from "../models/EC_Staff.js";
 import { encryptData, decryptData } from "../utils/crypto.utils.js";
 import { v4 as uuidv4 } from "uuid";
@@ -71,7 +71,7 @@ export const handleEvmRegistration = async (req, res) => {
 
     console.log("evm created = ", evm);
 
-    console.log("Server Public Key  = ",  serverPublicKey.toString("hex"));
+    console.log("Server Public Key  = ", serverPublicKey.toString("hex"));
 
     return res.status(201).json(
       formatResponse(
@@ -95,5 +95,5 @@ export const handleEvmRegistration = async (req, res) => {
 };
 
 export const handleEvmLogin = async (req, res) => {
-  
+
 }
