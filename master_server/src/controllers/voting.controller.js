@@ -81,9 +81,7 @@ export const handleVoterSession = async (req, res) => {
 export const handleCastVote = async (req, res) => {
   try {
     const voterId = req.voterId; // Retrieved from middleware
-    console.log("voterId = ", voterId);
     const { commitments } = req.body; // req.decryptedData
-    console.log("commitments = ", commitments);
 
     // Find the voter
     const voter = await Voter.findOne({ where: { voterId } });
@@ -126,7 +124,7 @@ export const handleCastVote = async (req, res) => {
        *  } 
        * ]
        */
-      console.log("New Commitment Created = ", newCommit);
+      console.log("New Commitment Created... ");
     }
 
     // Add the voter to the EVM's buffer
@@ -137,8 +135,8 @@ export const handleCastVote = async (req, res) => {
     });
 
     // Update the EVM with the new buffer
-    await evm.update({ buffer: currentBuffer });
-
+    await EVM.update({ buffer: currentBuffer }, { where: { id: evm.id } });
+    console.log("buffers updating...");
     // Mark voter as voted
     await voter.update({ hasVoted: true });
 
@@ -158,10 +156,22 @@ export const handleCastVote = async (req, res) => {
 
 export const checkpointEVM = async (req, res) => {
   try {
-    const evmId = req.evm.id; // EVM ID from the route parameter
-    const { randomVector } = req.body;
+    console.log("checkpointing called...");
+    const evmId = "1ab63c1a-2cb9-4a87-b719-592b601447dd"; // EVM ID from the route parameter
+    const { randomVector, clientCurrentTS } = req.body;
     const currentTimestamp = new Date();
 
+    console.log("server TS = ", currentTimestamp)
+    console.log("client TS = ", new Date(clientCurrentTS));
+
+    if (new Date(clientCurrentTS) > currentTimestamp) {
+      return res
+        .status(400)
+        .json(
+          formatResponse(false, null, 400, "Client timestamp cannot be in the future.")
+        );
+    }
+  console.log("req.body = ", req.body);
     // Validate randomVector schema
     if (
       !Array.isArray(randomVector) ||
@@ -193,32 +203,37 @@ export const checkpointEVM = async (req, res) => {
     }
 
     // Check buffer size
-    if (evm.buffer.length < 10) {
-      return res
-        .status(429)
-        .json(
-          formatResponse(
-            false,
-            null,
-            429,
-            "Buffer has less than 10 entries. Please wait before checkpointing."
-          )
-        );
-    }
+    // if (evm.buffer.length < 3) {
+    //   return res
+    //     .status(429)
+    //     .json(
+    //       formatResponse(
+    //         false,
+    //         null,
+    //         429,
+    //         "Buffer has less than 10 entries. Please wait before checkpointing."
+    //       )
+    //     );
+    // }
 
     // Filter buffer to remove entries older than the current timestamp
     const filteredBuffer = evm.buffer.filter(
-      (entry) => new Date(entry.votedAt) >= currentTimestamp
+      (entry) => new Date(entry.votedAt) >= new Date(clientCurrentTS)
     );
 
     // Update the EVM buffer
-    evm.buffer = filteredBuffer;
+    await EVM.update({ buffer: filteredBuffer }, { where: { id: evm.id } });
 
-    // Update randomVector in EVM table
-    evm.randomVector = randomVector;
+    evm.randomVector = randomVector.map(entry => ({
+      position: entry.position,
+      randomVector: JSON.stringify(entry.randomVector) // Ensures valid storage
+    }));
+
 
     // Save updates
     await evm.save();
+
+    console.log("evm = ", evm);
 
     return res
       .status(200)

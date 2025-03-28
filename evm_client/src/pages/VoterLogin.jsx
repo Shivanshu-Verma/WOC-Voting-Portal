@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import toast from "react-hot-toast";
 import useEvmStore from "../context/zustand";
-import { getAllCommitmentSums } from "../context/idb";
+import { getAllCommitmentSums, updateCommitmentSum } from "../context/idb";
+import axios from "axios";
+
+
+const base_url = import.meta.env.VITE_BACKEND_URL;
+
 // import axios from "axios";
 // let axiosInstance = axios.create({
 //   baseURL: base_url,
@@ -34,27 +39,28 @@ const VoterLogin = () => {
   const navigate = useNavigate();
   const setEvmId = useEvmStore((state) => state.setEvmId);
   const evmId = useEvmStore((state) => state.evmId);
+  const setNumVoteCast = useEvmStore((state) => state.setNumVoteCast);
   // updateAxiosWithEvmId(evmId)
   const handleClick = async () => {
     if (![part1, part2, part3, part4].every(part => part && part.trim())) {
       toast.error("Please select all parts of your Voter ID");
       return;
     }
-  
+
     const voterId = `${part1.trim()}${part2.trim()}${part3.trim()}${part4.trim()}`;
     console.log("Voter ID:", voterId);
-  
+
     try {
       const response = await GetStudentDetail(voterId);
-      
+
       if (response) {
         const { biometric_left, biometric_right, imageUrl, name } = response.Data.voter;
         // console.log(response?.Data);
-  
+
         if (!biometric_left || !biometric_right) {
           toast.warning("Incomplete biometric data found.");
         }
-  
+
         setFingerprint({
           left: biometric_left || null,
           right: biometric_right || null,
@@ -72,9 +78,24 @@ const VoterLogin = () => {
   };
   const verifyFingerprint = () => {
     console.log(voter);
-    
+
     navigate("/cast-vote", { state: { data: voter } });
   }
+  const hello = async () => {
+    try {
+      const data = await getAllCommitmentSums();
+      await axios.post(
+        `${base_url}/vote-cast/checkpoint`,
+        {
+          randomVector:  [{ position: "general_secretary_ss", randomVector: [1000, 1000] }]  ,
+          clientCurrentTS: new Date()
+        },
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error("Error retrieving commitment sums:", error);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center mt-10">
@@ -111,6 +132,8 @@ const VoterLogin = () => {
         <select value={part4} onChange={(e) => setPart4(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 4</option>
           <option value="88">88</option>
+          <option value="89">89</option>
+          <option value="90">90</option>
           <option value="95">95</option>
           <option value="96">96</option>
         </select>
@@ -123,7 +146,7 @@ const VoterLogin = () => {
         Fetch Details
       </button>
       <button
-        onClick={getAllCommitmentSums}
+        onClick={hello}
         className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
       >
         get summed commitment

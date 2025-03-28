@@ -5,31 +5,35 @@ import { getAllCommitmentSums } from "./idb";
 
 
 const base_url = import.meta.env.VITE_BACKEND_URL;
-
 const useEvmStore = create(
   persist(
-    devtools((set) => ({
+    devtools((set, get) => ({
       evmId: null,
       setEvmId: (id) => set({ evmId: id }),
       clearStore: () => set({ evmId: null }),
       ec: null,
       setEc: (ec) => set({ ec }),
       removeUser: () => set({ ec: null }),
-      numVoteCast :0,
       numVoteCast: 0,
-      setNumVoteCast: () => {
-        const { numVoteCast } = get(); 
+      setNumVoteCast: async () => {
+        const { numVoteCast } = get();
         const newVoteCount = numVoteCast + 1;
         set({ numVoteCast: newVoteCount });
 
-        if (newVoteCount === 10) {
-          axiosInstance.post(`${base_url}/api/vote-cast/checkpoint`,{
-            randomVector:getAllCommitmentSums()
-          },{ withCredentials:true }) 
-            .then(() => set({ numVoteCast: 0 })) 
-            .catch((err) => console.error("Error posting votes:", err));
+        if (newVoteCount === 3) {
+          try {
+            const randomVector = await getAllCommitmentSums(); // Await the async function
+            await axiosInstance.post(
+              `${base_url}/api/vote-cast/checkpoint`,
+              { randomVector },
+              { withCredentials: true }
+            );
+            set({ numVoteCast: 0 }); // Reset count only after successful API call
+          } catch (err) {
+            console.error("Error posting votes:", err);
+          }
         }
-      }
+      },
     })),
     { name: "evmStore" }
   )

@@ -1,6 +1,6 @@
 import { EC_Staff } from "../models/EC_Staff.js";
 import { EC_Volunteer } from "../models/EC_Volunteer.js";
-import { encryptData, decryptData } from "../utils/crypto.utils.js";
+import { encryptData, decryptData, encryptBiometric } from "../utils/crypto.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken"
@@ -21,8 +21,8 @@ export const handleEcStaffRegistration = async (req, res) => {
         .json(formatResponse(false, null, 409, "Staff already exists"));
     }
 
-    const encryptedRightThumb = encryptData(biometric.right);
-    const encryptedLeftThumb = encryptData(biometric.left);
+    const encryptedRightThumb = encryptBiometric(biometric.right);
+    const encryptedLeftThumb = encryptBiometric(biometric.left);
     const hashedPassword = crypto
       .createHash("sha256")
       .update(password)
@@ -83,8 +83,8 @@ export const handleEcVolunteerRegistration = async (req, res) => {
     }
 
     // Encrypt the volunteer's biometric data
-    const encryptedRightThumb = encryptData(biometric.right);
-    const encryptedLeftThumb = encryptData(biometric.left);
+    const encryptedRightThumb = encryptBiometric(biometric.right);
+    const encryptedLeftThumb = encryptBiometric(biometric.left);
 
     // Verify the staff providing verification
     const staffProvided = await EC_Staff.findOne({
