@@ -67,11 +67,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const CastVote =async (data)=>{
+    try {
+      const responce= await axiosInstance.post(`${base_url}/vote-cast/cast`,{
+        ...data
+      },{
+        withCredentials:true
+      })
+      console.log(responce);
+      
+      if (responce.status === 200) {
+        toast.success("voted casted successfully")
+        navigate('/voter-login')
+      }
+      else{
+        toast.error("error in vote cast")
+      }
+    } catch (error) {
+      toast.error("error in vote cast :axios error");
+    }
+  }
+
 
   const contextData = {
     LoginEcMember,
     ec,
-    GetStudentDetail
+    GetStudentDetail,
+    CastVote
   }
 
 

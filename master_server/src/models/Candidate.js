@@ -19,7 +19,6 @@ export const Candidate = sequelize.define(
         },
         basis: {
             type: DataTypes.STRING,
-            unique: true,
         },
         verfiedByVolunteer: {
             type: DataTypes.STRING,

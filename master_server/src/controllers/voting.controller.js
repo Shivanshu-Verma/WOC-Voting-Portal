@@ -79,8 +79,10 @@ export const handleVoterSession = async (req, res) => {
 
 export const handleCastVote = async (req, res) => {
   try {
-    const { voterId } = req; // Retrieved from middleware
+    const voterId  = req.voterId; // Retrieved from middleware
+    console.log("voterId = ", voterId);
     const { commitments } = req.body; // req.decryptedData
+    console.log("commitments = ", commitments);
 
     const voter = await Voter.findOne({ where: { voterId } });
     if (!voter) {
@@ -102,7 +104,7 @@ export const handleCastVote = async (req, res) => {
       const newCommit = await Commitment.create({
         position: commitment.position,
         evm: req.evm.id,
-        commitment: commitment.commitment,
+        commitment: String(commitment.commitment),
       });
 
       /**
