@@ -1,5 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
+import { updateCommitmentSum } from "../context/idb";
+
+function generateRandomCommitmentArray(size) {
+  const randomArray = [];
+  for (let i = 0; i < size; i++) {
+    randomArray.push(Math.floor(Math.random() * 9999));
+  }
+  return randomArray;
+}
 
 function CastVote() {
   const location = useLocation();
@@ -7,6 +17,7 @@ function CastVote() {
   const [voter, setVoter] = useState(null);
   const [candidates, setCandidates] = useState([]);
   const [votes, setVotes] = useState({}); // Stores selected candidates for each position
+  const { CastVote } = useContext(AuthContext)
 
   useEffect(() => {
     if (data) {
@@ -23,17 +34,91 @@ function CastVote() {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log("Votes Submitted:", votes);
-    alert("Vote submitted successfully!");
+    // alert("Vote submitted successfully!");
+  
+    const randomCommitmentResult = [];
+    const voteCommitmentResult = [];
+    const summedCommitmentResult = [];
+  
+    // Process each position group
+    for (const position in groupedCandidates) {
+      // Create positionData object for random commitments
+      const randomPositionData = {
+        position: position,
+        commitment: []
+      };
+      
+      // Create positionData object for vote commitments (chosen candidates)
+      const votePositionData = {
+        position: position,
+        commitment: []
+      };
+      
+      // Check if there are candidates for this position
+      if (groupedCandidates[position].length > 0) {
+        // Get the chosen candidate ID for this position
+        const chosenCandidateId = votes[position];
+        
+        // Generate random commitment for all candidates in this position
+        const basisArraySize = groupedCandidates[position][0].basisArray.length;
+        const randomCommitment = generateRandomCommitmentArray(basisArraySize);
+        randomPositionData.commitment.push(randomCommitment);
+        
+        // Find the chosen candidate in the group
+        const chosenCandidate = groupedCandidates[position].find(
+          candidate => candidate.id === chosenCandidateId
+        );
+        
+        // If a candidate was chosen for this position, add their commitment (basis + random)
+        if (chosenCandidate) {
+          // Add the random commitment and basis array values together
+          const combinedCommitment = chosenCandidate.basisArray.map((basisValue, index) => {
+            // Make sure we don't go out of bounds of the random commitment array
+            const randomValue = index < randomCommitment.length ? randomCommitment[index] : 0;
+            return basisValue + randomValue; // Add the values at corresponding indices
+          });
+          
+          votePositionData.commitment.push(combinedCommitment);
+          try {
+            await updateCommitmentSum(position, randomCommitment);
+            console.log(`Sum updated in IndexedDB for position: ${position}`);
+          } catch (error) {
+            console.error(`Error updating sum in IndexedDB for position: ${position}`, error);
+          }
+        }
+      }
+      
+      // Add the position data to both result arrays
+      randomCommitmentResult.push(randomPositionData);
+      voteCommitmentResult.push(votePositionData);
+    }
+    
+    console.log("Random Commitment Result:", randomCommitmentResult);
+    console.log("Vote Commitment Result:", voteCommitmentResult);
+    
+    // Create the final object to send to CastVote
+    const finalVoteData = {
+      voterId: voter?.id,
+      commitments: voteCommitmentResult // Only send the vote commitment result
+    };
+    
+    console.log("Final Vote Data to Send:", finalVoteData);
+    
+    // Uncomment when ready to submit
+    await CastVote(finalVoteData);
+    
+    return;
   };
 
-  // Group candidates by position
   const groupedCandidates = candidates.reduce((acc, candidate) => {
     acc[candidate.position] = acc[candidate.position] || [];
     acc[candidate.position].push(candidate);
+
     return acc;
   }, {});
+  console.log(groupedCandidates);
 
   return (
     <div className="p-4 max-w-lg mx-auto bg-white shadow-lg rounded-lg">

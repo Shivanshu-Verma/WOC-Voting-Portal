@@ -18,10 +18,10 @@ export const fetchCandidateInfo = async (voter) => {
         const candidates = await Candidate.findAll({
             where: {
                 position: { [Op.in]: voter.allowedPositions },
-                verifiedByStaff: { [Op.ne]: null }, // Only verified candidates
+                // verifiedByStaff: { [Op.ne]: null }, // Only verified candidates
             },
         });
-
+        console.log("candidates = ", candidates);
         // Get max basis per position
         const maxBasisPerPosition = {};
         candidates.forEach(candidate => {
@@ -39,15 +39,19 @@ export const fetchCandidateInfo = async (voter) => {
             }
             return basisArray;
         };
-
+        
         // Transform candidates with basis array
-        return candidates.map(candidate => ({
+        const returnval = candidates.map(candidate => ({
             id: candidate.id,
             name: candidate.name,
             position: candidate.position,
             basisArray: encodeBasis(parseInt(candidate.basis, 10), maxBasisPerPosition[candidate.position]),
             imageUrl: candidate.imageUrl,
         }));
+
+        console.log("returning = ", returnval);
+
+        return returnval;
 
     } catch (error) {
         console.error("Error fetching candidate info:", error);
