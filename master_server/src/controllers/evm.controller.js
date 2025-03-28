@@ -93,3 +93,7 @@ export const handleEvmRegistration = async (req, res) => {
       .json(formatResponse(false, null, 500, "Internal Server Error"));
   }
 };
+
+export const handleEvmLogin = async (req, res) => {
+  
+}

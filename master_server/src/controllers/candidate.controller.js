@@ -79,6 +79,7 @@ export const handleCandidateRegistration = async (req, res) => {
   }
 };
 
+import { Op } from "sequelize";
 
 export const verifyCandidate = async (req, res) => {
   const { id } = req.params;
@@ -96,35 +97,104 @@ export const verifyCandidate = async (req, res) => {
     if (!candidate) {
       return res.status(404).json(formatResponse(false, null, 404, "Candidate Not Found"));
     }
-
+    if(candidate.verifiedByStaff != null){
+      return res.status(200).json(formatResponse(true, null, 200, "Candidate already verified"));
+    }
     const staffExist = await EC_Staff.findOne({ where: { id: verifiedByStaff } });
 
     if (!staffExist) {
       return res.status(404).json(formatResponse(false, null, 404, "Staff Not Found"));
     }
 
-    // Find the max basis and assign the next number
-    const maxBasis = await Candidate.max("basis");
+    const position = candidate.position;
 
-    // Ensure maxBasis is treated as a number before incrementing
-    const numMaxBasis = maxBasis ? parseInt(maxBasis, 10) || 0 : 0;
-    const newBasis = String(numMaxBasis + 1); // Convert back to string
+    // Count real candidates (excluding NOTA)
+    const realCandidatesCount = await Candidate.count({
+      where: {
+        position,
+        name: { [Op.ne]: "NOTA" },
+        verifiedByStaff: { [Op.ne]: null }, // Only count verified candidates
+      },
+    });
 
-    candidate.basis = newBasis; // Store as a string
-    candidate.verifiedByStaff = verifiedByStaff;
+    if (realCandidatesCount === 0) {
+      // If this is the first real candidate, give them basis = 1 first
+      console.log("first");
+      
+      candidate.basis = "1";
+      candidate.verifiedByStaff = verifiedByStaff;
+      await candidate.save();
 
-    await candidate.save();
+      // Then create NOTA
+      await Candidate.create({
+        id: `NOTA_${position}`,
+        name: "NOTA",
+        basis: "2",
+        position,
+      });
 
-    return res
-      .status(200)
-      .json(
+      return res.status(200).json(
         formatResponse(
           true,
-          { message: "Candidate verified successfully", candidate },
+          { message: "Candidate verified successfully (First candidate, NOTA added)", candidate },
           null,
           null
         )
       );
+    }
+
+    if (realCandidatesCount === 1) {
+      // If this is the second real candidate, remove NOTA first
+      await Candidate.destroy({ where: { position, name: `NOTA` } });
+
+      // Assign basis to the new candidate
+      candidate.basis = "2";
+      candidate.verifiedByStaff = verifiedByStaff;
+      await candidate.save();
+
+      return res.status(200).json(
+        formatResponse(
+          true,
+          { message: "Candidate verified successfully (Second candidate, NOTA removed)", candidate },
+          null,
+          null
+        )
+      );
+    }
+
+    // For other candidates, continue assigning basis normally
+    // FIXED: Ensure we have a valid basis value
+    let maxBasis = await Candidate.max("basis", { where: { position } });
+    
+    // Handle potential null or non-numeric values
+    let numMaxBasis = 0;
+    if (maxBasis !== null && maxBasis !== undefined) {
+      const parsed = parseInt(maxBasis, 10);
+      if (!isNaN(parsed)) {
+        numMaxBasis = parsed;
+      }
+    }
+    
+    const newBasis = String(numMaxBasis + 1);
+
+    // Double-check we're not assigning null or undefined
+    if (!newBasis || newBasis === "NaN" || newBasis === "undefined") {
+      candidate.basis = "1"; // Fallback to "1" if something went wrong
+    } else {
+      candidate.basis = newBasis;
+    }
+
+    candidate.verifiedByStaff = verifiedByStaff;
+    await candidate.save();
+    await Candidate.destroy({ where: { position, name: `NOTA` } });
+    return res.status(200).json(
+      formatResponse(
+        true,
+        { message: "Candidate verified successfully", candidate },
+        null,
+        null
+      )
+    );
   } catch (error) {
     console.error("Error verifying candidate:", error);
     return res

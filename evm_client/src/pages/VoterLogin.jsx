@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import toast from "react-hot-toast";
 import useEvmStore from "../context/zustand";
+import { getAllCommitmentSums } from "../context/idb";
 // import axios from "axios";
 // let axiosInstance = axios.create({
 //   baseURL: base_url,
@@ -109,7 +110,9 @@ const VoterLogin = () => {
         {/* Dropdown 4 */}
         <select value={part4} onChange={(e) => setPart4(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 4</option>
-          <option value="1088">88</option>
+          <option value="88">88</option>
+          <option value="95">95</option>
+          <option value="96   ">96</option>
         </select>
       </div>
 
@@ -118,6 +121,12 @@ const VoterLogin = () => {
         className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
       >
         Fetch Details
+      </button>
+      <button
+        onClick={getAllCommitmentSums}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+      >
+        get summed commitment
       </button>
 
       {fingerprint && (
