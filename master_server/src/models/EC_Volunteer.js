@@ -21,11 +21,11 @@ export const EC_Volunteer = sequelize.define(
       type: DataTypes.STRING,
     },
     biometric_right: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     biometric_left: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     verifiedByStaff: {

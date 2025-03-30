@@ -2,14 +2,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useEffect } from 'react';
 import { useEcStore } from './store/zustand';
 import LoginPage from './pages/LoginPage';
-import EcStaffRegister from './pages/EcStaffRegister';
-import EcVolunteerRegister from './pages/EcVolunteerRegister';
-import CandidateRegister from './pages/CandidateRegister';
 import Warning from './pages/Warning';
 import ProtectedRoute from './components/ProtectedRoute';
 import DevToolsDetector from './components/DevToolDetector';
-import OptionsPage from './pages/OptionsPage';
-import VerificationPage from './pages/VerificationPage';
+import Dashboard from './pages/DashBoard';
+import RegisterStaff from './pages/RegisterStaff';
+import RegisterVolunteer from './pages/RegisterVolunteer';
+import RegisterVoter from './pages/RegisterVoter';
+import VoterVerification from './pages/VerifyVoter';
 
 const AppRoutes = () => {
   const ecId = useEcStore((state) => state.ecId);
@@ -32,8 +32,13 @@ const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-    <Route path="/" element={ecId ? <Navigate to="/dashboard" /> : <LoginPage />} />
-    <Route path="/dashboard" element={<ProtectedRoute><OptionsPage /></ProtectedRoute>} />
+    <Route path="/" element={<LoginPage />} />
+    <Route path='/dashboard' element={<Dashboard/>} />
+    <Route path='/register-staff' element={<RegisterStaff/>} />
+    <Route path='/register-volunteer' element={<RegisterVolunteer/>} />
+    <Route path='/register-voter' element={<RegisterVoter/>} />
+    <Route path='verify-voter'element={<VoterVerification/>} />
+    {/* <Route path="/dashboard" element={<ProtectedRoute><OptionsPage /></ProtectedRoute>} />
 
     <Route path="/verify" element={<ProtectedRoute><VerificationPage /></ProtectedRoute>} />
 
@@ -49,7 +54,7 @@ const AppRoutes = () => {
       <ProtectedRoute requires="volunteer">
         <CandidateRegister />
       </ProtectedRoute>
-    } />
+    } /> */}
 
     <Route path="/warning" element={<Warning />} />
   </Routes>
