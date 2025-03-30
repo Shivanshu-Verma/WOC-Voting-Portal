@@ -30,7 +30,7 @@ app.post('/set-cookie', (req, res) => {
         httpOnly: true,
         maxAge: 12 * 60 * 60 * 1000,
         secure: false,
-        sameSite: 'lax',
+        sameSite: 'None',
     });
     res.send('Test cookie set!');
 });
