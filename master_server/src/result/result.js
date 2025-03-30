@@ -3,12 +3,21 @@ import express from "express";
 import { connectDB, sequelize } from "../db/db.js";
 import { EVM } from "../models/EVM.js";
 import { Commitment } from "../models/Commitments.js";
+import { Candidate } from "../models/Candidate.js";
 import {
   authenticateUser,
   verifierIsStaff,
 } from "../middlewares/auth.middleware.js";
 import { decryptMiddleware } from "../middlewares/decryption.middleware.js";
 import { Op } from "sequelize";
+
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+// Convert import.meta.url to a file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+let resultsCalculated = false;
 
 (async () => {
   try {
@@ -26,7 +35,6 @@ import { Op } from "sequelize";
       verifierIsStaff,
       decryptMiddleware,
       async (req, res) => {
-
         if (resultsCalculated) {
           return res.status(403).json({
             success: false,
@@ -56,19 +64,25 @@ import { Op } from "sequelize";
           if (
             !Array.isArray(randomVector) ||
             randomVector.some(
-              (entry) => typeof entry !== "object" || !entry.position || !entry.randomVector
+              (entry) =>
+                typeof entry !== "object" ||
+                !entry.position ||
+                !entry.randomVector
             )
           ) {
             return res.status(400).json({
               success: false,
-              error: "Invalid randomVector format. Each entry must have 'position' and 'randomVector'.",
+              error:
+                "Invalid randomVector format. Each entry must have 'position' and 'randomVector'.",
             });
           }
 
           // Fetch EVM
           const evm = await EVM.findByPk(evmId);
           if (!evm) {
-            return res.status(404).json({ success: false, error: "EVM not found." });
+            return res
+              .status(404)
+              .json({ success: false, error: "EVM not found." });
           }
 
           // Filter buffer entries that are newer than client timestamp
@@ -78,25 +92,34 @@ import { Op } from "sequelize";
 
           // Convert existing randomVector to a map for easy merging
           const existingRandomVectorMap = new Map(
-            evm.randomVector.map((entry) => [entry.position, JSON.parse(entry.randomVector)])
+            evm.randomVector.map((entry) => [
+              entry.position,
+              JSON.parse(entry.randomVector),
+            ])
           );
 
           // Merge the incoming randomVector with existing values
           randomVector.forEach((entry) => {
-            const existingValues = existingRandomVectorMap.get(entry.position) || [];
-            const newValues = Array.isArray(entry.randomVector) ? entry.randomVector : [entry.randomVector];
+            const existingValues =
+              existingRandomVectorMap.get(entry.position) || [];
+            const newValues = Array.isArray(entry.randomVector)
+              ? entry.randomVector
+              : [entry.randomVector];
 
             // Append new values while ensuring they are arrays
-            existingRandomVectorMap.set(entry.position, [...existingValues, ...newValues]);
+            existingRandomVectorMap.set(entry.position, [
+              ...existingValues,
+              ...newValues,
+            ]);
           });
 
           // Convert back to the required format
-          const updatedRandomVector = Array.from(existingRandomVectorMap.entries()).map(
-            ([position, vector]) => ({
-              position,
-              randomVector: JSON.stringify(vector), // Store as string
-            })
-          );
+          const updatedRandomVector = Array.from(
+            existingRandomVectorMap.entries()
+          ).map(([position, vector]) => ({
+            position,
+            randomVector: JSON.stringify(vector), // Store as string
+          }));
 
           // Update the EVM record in the database
           await EVM.update(
@@ -113,11 +136,12 @@ import { Op } from "sequelize";
           });
         } catch (error) {
           console.error("Error during checkpointing:", error);
-          return res.status(500).json({ success: false, error: "Internal Server Error" });
+          return res
+            .status(500)
+            .json({ success: false, error: "Internal Server Error" });
         }
       }
     );
-
 
     const server = app.listen(6969, () => {
       console.log("Result route open on port", 6969);
@@ -126,10 +150,8 @@ import { Op } from "sequelize";
     setTimeout(async () => {
       console.log("Calculating election results...");
 
-
       // Step 1: Fetch all EVMs
       const evms = await EVM.findAll();
-
 
       // Step 2: Collect all voters in buffers
       const votersInBuffer = [];
@@ -139,11 +161,10 @@ import { Op } from "sequelize";
         }
       }
 
-      console.log("voters in buffer = ", votersInBuffer)
+      console.log("voters in buffer = ", votersInBuffer);
 
       // Step 3: Prepare summation of random vectors by position
       const summedRandomVectors = {};
-
 
       // Sum up random vectors for each position across all EVMs
       for (const evm of evms) {
@@ -244,11 +265,44 @@ import { Op } from "sequelize";
         });
       }
 
+      // Step 6: Prepare modified candidate results
+      const modifiedCandidateResult = [];
+
+      for (const result of finalResult) {
+        const { position, result_vector } = result;
+        const resultArray = result_vector
+          .split(",")
+          .map((val) => parseInt(val, 10));
+
+        console.log("resultArray = ", resultArray);
+
+        for (let index = 0; index < resultArray.length; index++) {
+          const basis = index + 1;
+
+          // Fetch candidate info from the database
+          const candidate = await Candidate.findOne({
+            where: {
+              position: position,
+              basis: String(basis),
+            },
+          });
+
+          if (candidate) {
+            modifiedCandidateResult.push({
+              position: position,
+              candidateName: candidate.name,
+              candidateId: candidate.id,
+              votes: resultArray[index],
+            });
+          }
+        }
+      }
+
+      console.log("Modified Candidate Result:", modifiedCandidateResult);
       resultsCalculated = true;
 
-
       app.get("/results", (req, res) => {
-        res.json({ success: true, results: finalResult });
+        res.json({ success: true, results: modifiedCandidateResult });
       });
 
       app.use(express.static("public"));
@@ -258,7 +312,6 @@ import { Op } from "sequelize";
       });
 
       console.log("Results available at http://localhost:6969");
-
     }, 1000);
   } catch (error) {
     console.error("Error during server initialization:", error);
