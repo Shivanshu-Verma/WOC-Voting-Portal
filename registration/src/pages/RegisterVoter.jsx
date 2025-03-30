@@ -159,13 +159,17 @@ const VoterRegistration = () => {
       verifiedByVolunteer: volunteerId,
     };
 
-    console.log("Request Data: ", requestData); // Debugging
+    console.log("Request Data: ", imageFile); // Debugging
   
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/voter/register`,
         requestData,  // Send as an object instead of FormData
-        { withCredentials: true }
+        {headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        withCredentials:true
+      }
       );
   
       if (res.data?.Success) {

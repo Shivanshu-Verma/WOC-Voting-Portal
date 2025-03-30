@@ -10,6 +10,8 @@ import RegisterStaff from './pages/RegisterStaff';
 import RegisterVolunteer from './pages/RegisterVolunteer';
 import RegisterVoter from './pages/RegisterVoter';
 import VoterVerification from './pages/VerifyVoter';
+import RegisterCandidate from './pages/RegisterCandidate';
+import CandidateVerification from './pages/VerifyCandidate';
 
 const AppRoutes = () => {
   const ecId = useEcStore((state) => state.ecId);
@@ -36,8 +38,10 @@ const AppRoutes = () => {
     <Route path='/dashboard' element={<Dashboard/>} />
     <Route path='/register-staff' element={<RegisterStaff/>} />
     <Route path='/register-volunteer' element={<RegisterVolunteer/>} />
+    <Route path='/register-candidate' element={<RegisterCandidate/>} />
     <Route path='/register-voter' element={<RegisterVoter/>} />
-    <Route path='verify-voter'element={<VoterVerification/>} />
+    <Route path='/verify-voter'element={<VoterVerification/>} />
+    <Route path='/verify-candidate' element={<CandidateVerification/>} />
     {/* <Route path="/dashboard" element={<ProtectedRoute><OptionsPage /></ProtectedRoute>} />
 
     <Route path="/verify" element={<ProtectedRoute><VerificationPage /></ProtectedRoute>} />

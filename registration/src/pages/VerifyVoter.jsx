@@ -16,8 +16,9 @@ const VoterVerification = () => {
         { withCredentials: true }
       );
 
-      if (res.data.success) {
-        setVoter(res.data.voter);
+      if (res.data.Success && res.data.Data) {
+        console.log("Voter data:", res.data.Data);
+        setVoter(res.data.Data.voter);
       } else {
         alert("Voter not found.");
       }
@@ -33,15 +34,16 @@ const VoterVerification = () => {
   const verifyVoter = async () => {
     if (!voter) return alert("No voter to verify.");
 
-    // Check for MatchFinger function
     if (typeof window.MatchFinger !== "function") {
       alert("Fingerprint scanner not available.");
       return;
     }
 
-    // Get stored fingerprint & verifier ID (staff/volunteer) from localStorage
-    const storedFingerprint = localStorage.getItem("ecFingerprint") || localStorage.getItem("staffFingerprint");
-    const verifierId = localStorage.getItem("ecId") || localStorage.getItem("staffId");
+    const storedFingerprint =
+      localStorage.getItem("ecFingerprint") ||
+      localStorage.getItem("staffFingerprint");
+    const verifierId =
+      localStorage.getItem("ecId") || localStorage.getItem("staffId");
 
     if (!storedFingerprint || !verifierId) {
       alert("Verifier data missing in local storage.");
@@ -49,20 +51,21 @@ const VoterVerification = () => {
     }
 
     try {
-      // Match fingerprint using MatchFinger function
-      const res = window.MatchFinger(60, 10, storedFingerprint);
+      const res = await window.MatchFinger(60, 10, storedFingerprint);
 
-      if (res.httpStaus && res.data?.Status) {
+      if (res.httpStaus && res.data?.ErrorCode === "0" && res.data.Status) {
         alert("Fingerprint matched successfully!");
 
         // Send verification request
         await axios.post(
           `${import.meta.env.VITE_BASE_URL}/voter/verify-voter`,
-          { voterId: voter.voterId, verifierId },
+          { id: voterId, verifiedByStaff: verifierId },
           { withCredentials: true }
         );
 
         alert("Voter verified successfully!");
+        setVoter(null); // Clear voter data after verification
+        setVoterId(""); // Clear input field
       } else {
         alert("Fingerprint mismatch.");
       }
@@ -75,7 +78,9 @@ const VoterVerification = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-4xl bg-white p-8 rounded-xl shadow-lg">
-        <h1 className="text-4xl font-bold mb-8 text-gray-800 text-center">Voter Verification</h1>
+        <h1 className="text-4xl font-bold mb-8 text-gray-800 text-center">
+          Voter Verification
+        </h1>
 
         {/* Search Voter */}
         <div className="flex mb-8 space-x-4">
@@ -97,41 +102,65 @@ const VoterVerification = () => {
 
         {/* Display Voter Info */}
         {voter && (
-          <div className="border rounded-lg p-6 mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Voter Information</h2>
-            <p className="mb-2"><strong>Voter ID:</strong> {voter.voterId}</p>
-            <p className="mb-4"><strong>Name:</strong> {voter.name}</p>
-
-            <div className="grid grid-cols-3 gap-4">
-              {/* Left Fingerprint */}
-              <div className="text-center">
-                <h3 className="font-semibold mb-2">Left Fingerprint</h3>
-                <img
-                  src={`data:image/png;base64,${voter.biometric.left}`}
-                  alt="Left Fingerprint"
-                  className="w-32 h-32 object-cover rounded-lg border"
-                />
+          <div className="border rounded-lg p-8 mb-8 bg-gray-50 shadow-md">
+            {/* Voter Info Section - Centered */}
+            <div className="flex justify-between items-center">
+              <div className="text-center flex-1">
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  Voter Information
+                </h2>
+                <p className="mt-2 text-lg">
+                  <strong>Voter ID:</strong> {voterId}
+                </p>
+                <p className="text-lg">
+                  <strong>Name:</strong> {voter.name}
+                </p>
               </div>
+
+              {/* Captured Image - Right Aligned & Larger */}
+              {voter.imageUrl && (
+                <div className="text-center ml-6">
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Captured Image
+                  </h3>
+                  <img
+                    src={voter.imageUrl}
+                    alt="Captured"
+                    className="w-48 h-48 object-cover rounded-xl border shadow-lg"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Fingerprints Section - Below */}
+            <div className="flex justify-center gap-12 mt-6">
+              {/* Left Fingerprint */}
+              {voter.biometric?.left && (
+                <div className="text-center">
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Left Fingerprint
+                  </h3>
+                  <img
+                    src={`data:image/png;base64,${voter.biometric.left}`}
+                    alt="Left Fingerprint"
+                    className="w-32 h-32 object-cover rounded-lg border shadow"
+                  />
+                </div>
+              )}
 
               {/* Right Fingerprint */}
-              <div className="text-center">
-                <h3 className="font-semibold mb-2">Right Fingerprint</h3>
-                <img
-                  src={`data:image/png;base64,${voter.biometric.right}`}
-                  alt="Right Fingerprint"
-                  className="w-32 h-32 object-cover rounded-lg border"
-                />
-              </div>
-
-              {/* Captured Image */}
-              <div className="text-center">
-                <h3 className="font-semibold mb-2">Captured Image</h3>
-                <img
-                  src={voter.image}
-                  alt="Captured"
-                  className="w-32 h-32 object-cover rounded-lg border"
-                />
-              </div>
+              {voter.biometric?.right && (
+                <div className="text-center">
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Right Fingerprint
+                  </h3>
+                  <img
+                    src={`data:image/png;base64,${voter.biometric.right}`}
+                    alt="Right Fingerprint"
+                    className="w-32 h-32 object-cover rounded-lg border shadow"
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}

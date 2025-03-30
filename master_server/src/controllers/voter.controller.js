@@ -31,6 +31,8 @@ export const handleVoterRegistration = async (req, res) => {
         .status(404)
         .json(formatResponse(false, null, 404, "Volunteer not found"));
 
+    console.log("req.file = ", req.file);
+
     // Register voter
     const voter = await Voter.create({
       voterId,
