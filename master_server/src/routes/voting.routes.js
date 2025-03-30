@@ -35,9 +35,9 @@ router.post(
 // checkpointing route
 router.post(
   "/checkpoint",
-  // authenticateUser,
-  // verifierIsStaff,
-  // decryptMiddleware,
+  authenticateUser,
+  verifierIsStaff,
+  decryptMiddleware,
   checkpointEVM
 );
 

@@ -8,6 +8,7 @@ export const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERN
 
 export async function connectDB() {
     try {
+        console.log(".....lokoko")
         await sequelize.authenticate();
         console.log('Connection has been established successfully.');
     } catch (error) {

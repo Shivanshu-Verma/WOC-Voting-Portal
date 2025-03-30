@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
 import { axiosInstance } from "../pages/EvmRegister";
-import { getAllCommitmentSums } from "./idb";
+import { clearAllCommitmentSums, getAllCommitmentSums } from "./idb";
 
 
 const base_url = import.meta.env.VITE_BACKEND_URL;
@@ -20,15 +20,18 @@ const useEvmStore = create(
         const newVoteCount = numVoteCast + 1;
         set({ numVoteCast: newVoteCount });
 
-        if (newVoteCount === 3) {
+        if (newVoteCount === 2) {
           try {
             const randomVector = await getAllCommitmentSums(); // Await the async function
-            await axiosInstance.post(
-              `${base_url}/api/vote-cast/checkpoint`,
+            const responce = await axiosInstance.post(
+              `${base_url}/vote-cast/checkpoint`,
               { randomVector,clientCurrentTS: new Date() },
               { withCredentials: true }
             );
-            set({ numVoteCast: 0 }); // Reset count only after successful API call
+            if(responce.status==200){
+              set({ numVoteCast: 0 }); 
+              await clearAllCommitmentSums();
+            }
           } catch (err) {
             console.error("Error posting votes:", err);
           }

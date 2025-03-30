@@ -1,17 +1,18 @@
 import crypto from 'crypto';
 
 export const encryptBiometric = (data) => {
-  const secret = process.env.ENCRYPTION_SECRET; // Shared secret
-  const iv = Buffer.from(process.env.ENCRYPTION_IV, 'hex');
+  // const secret = process.env.ENCRYPTION_SECRET; // Shared secret
+  // const iv = Buffer.from(process.env.ENCRYPTION_IV, 'hex');
 
-  // Hash the secret using SHA-256 to derive the encryption key
-  const key = crypto.createHash('sha256').update(secret).digest();
+  // // Hash the secret using SHA-256 to derive the encryption key
+  // const key = crypto.createHash('sha256').update(secret).digest();
 
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  // const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
 
-  let encrypted = cipher.update(data, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return encrypted;
+  // let encrypted = cipher.update(data, 'utf8', 'hex');
+  // encrypted += cipher.final('hex');
+  // return encrypted;
+  return data;
 };
 
 

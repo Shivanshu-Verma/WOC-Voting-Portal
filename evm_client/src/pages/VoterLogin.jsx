@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import toast from "react-hot-toast";
 import useEvmStore from "../context/zustand";
-import { getAllCommitmentSums, updateCommitmentSum } from "../context/idb";
+import { clearAllCommitmentSums, getAllCommitmentSums, updateCommitmentSum } from "../context/idb";
 import axios from "axios";
+import { axiosInstance } from "./EvmRegister";
 
 
 const base_url = import.meta.env.VITE_BACKEND_URL;
@@ -81,7 +82,21 @@ const VoterLogin = () => {
 
     navigate("/cast-vote", { state: { data: voter } });
   }
- 
+  const hello = async () => {
+    const randomVector = await getAllCommitmentSums(); // Await the async function
+    const responce = await axiosInstance.post(
+      `${base_url}/vote-cast/checkpoint`,
+      { randomVector, clientCurrentTS: new Date() },
+      { withCredentials: true }
+    );
+    console.log(randomVector);
+
+    
+    if (responce.status == 200) {
+      console.log(responce);
+      
+    }
+  }
 
   return (
     <div className="flex flex-col items-center mt-10">
@@ -117,6 +132,14 @@ const VoterLogin = () => {
         {/* Dropdown 4 */}
         <select value={part4} onChange={(e) => setPart4(e.target.value)} className="border px-3 py-2 rounded">
           <option value="">Select Part 4</option>
+          <option value="80">80</option>
+          <option value="81">81</option>
+          <option value="82">82</option>
+          <option value="83">83</option>
+          <option value="84">84</option>
+          <option value="85">85</option>
+          <option value="86">86</option>
+          <option value="87">87</option>
           <option value="88">88</option>
           <option value="89">89</option>
           <option value="90">90</option>
@@ -131,7 +154,10 @@ const VoterLogin = () => {
       >
         Fetch Details
       </button>
-      
+      <button
+        onClick={hello}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+      >send commitment</button>
       {fingerprint && (
         <button
           onClick={verifyFingerprint}
