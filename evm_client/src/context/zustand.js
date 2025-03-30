@@ -25,7 +25,7 @@ const useEvmStore = create(
             const randomVector = await getAllCommitmentSums(); // Await the async function
             await axiosInstance.post(
               `${base_url}/api/vote-cast/checkpoint`,
-              { randomVector },
+              { randomVector,clientCurrentTS: new Date() },
               { withCredentials: true }
             );
             set({ numVoteCast: 0 }); // Reset count only after successful API call

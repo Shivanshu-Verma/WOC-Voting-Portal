@@ -171,7 +171,7 @@ export const checkpointEVM = async (req, res) => {
           formatResponse(false, null, 400, "Client timestamp cannot be in the future.")
         );
     }
-  console.log("req.body = ", req.body);
+    console.log("req.body = ", req.body);
     // Validate randomVector schema
     if (
       !Array.isArray(randomVector) ||

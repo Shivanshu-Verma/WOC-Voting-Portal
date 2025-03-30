@@ -81,21 +81,7 @@ const VoterLogin = () => {
 
     navigate("/cast-vote", { state: { data: voter } });
   }
-  const hello = async () => {
-    try {
-      const data = await getAllCommitmentSums();
-      await axios.post(
-        `${base_url}/vote-cast/checkpoint`,
-        {
-          randomVector:  [{ position: "general_secretary_ss", randomVector: [1000, 1000] }]  ,
-          clientCurrentTS: new Date()
-        },
-        { withCredentials: true }
-      );
-    } catch (error) {
-      console.error("Error retrieving commitment sums:", error);
-    }
-  };
+ 
 
   return (
     <div className="flex flex-col items-center mt-10">
@@ -145,13 +131,7 @@ const VoterLogin = () => {
       >
         Fetch Details
       </button>
-      <button
-        onClick={hello}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
-      >
-        get summed commitment
-      </button>
-
+      
       {fingerprint && (
         <button
           onClick={verifyFingerprint}
