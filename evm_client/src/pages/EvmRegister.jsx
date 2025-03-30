@@ -49,7 +49,7 @@ class BigIntModular {
     if (modulus === 1n) return 0n;
 
     let result = 1n;
-    base = base % modulus;
+    base = base % modulus;  
 
     while (exponent > 0n) {
       if (exponent % 2n === 1n) {
@@ -151,6 +151,7 @@ const EvmRegistration = () => {
     if (evmRoom.trim()) {
       setError("");
       setShowStaffInput(true);
+      handleFingerprintCapture()
     } else {
       setError("Please enter an EVM Room Number");
     }
@@ -241,18 +242,7 @@ const EvmRegistration = () => {
         Register
       </button>
 
-      {showStaffInput && (
-        <div className="mt-6 flex flex-col items-center">
-          <p className="mb-2">Verify your fingerprint</p>
-          <button
-            onClick={handleFingerprintCapture}
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-600 transition-colors disabled:bg-blue-300"
-            disabled={isLoading}
-          >
-            {isLoading ? "Processing..." : "Capture Fingerprint"}
-          </button>
-        </div>
-      )}
+     
     </div>
   );
 };
