@@ -26,6 +26,14 @@ import { Op } from "sequelize";
       verifierIsStaff,
       decryptMiddleware,
       async (req, res) => {
+
+        if (resultsCalculated) {
+          return res.status(403).json({
+            success: false,
+            error: "Checkpointing is closed. Results have been finalized.",
+          });
+        }
+
         try {
           console.log("Checkpointing called...");
           const evmId = req.evm.id; // EVM ID
@@ -236,12 +244,21 @@ import { Op } from "sequelize";
         });
       }
 
-      console.log("Final Results:", finalResult);
-      console.log("Voters in Buffer:", votersInBuffer);
+      resultsCalculated = true;
 
-      server.close(() => {
-        console.log("Result route closed.");
+
+      app.get("/results", (req, res) => {
+        res.json({ success: true, results: finalResult });
       });
+
+      app.use(express.static("public"));
+
+      app.get("/", (req, res) => {
+        res.sendFile(__dirname + "/public/results.html");
+      });
+
+      console.log("Results available at http://localhost:6969");
+
     }, 1000);
   } catch (error) {
     console.error("Error during server initialization:", error);
