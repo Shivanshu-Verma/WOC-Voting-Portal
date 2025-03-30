@@ -66,60 +66,52 @@ import { decryptMiddleware } from "../middlewares/decryption.middleware.js";
     });
 
   setTimeout(async () => {
-    console.log("Closing result route...");
-    server.close();
+  console.log("Closing result route...");
+  server.close();
 
-    const evms = await EVM.findAll();
-    const result = {};
-    const summedRandomVectors = {};
+  const evms = await EVM.findAll();
+  const summedRandomVectors = {};
 
-    // Step 1: Sum up random vectors for each position
-    for (const evm of evms) {
-      evm.randomVector.forEach(({ position, randomVector }) => {
-        const vectorArray = randomVector.split(",").map((val) => parseInt(val, 10));
-        if (!summedRandomVectors[position]) {
-          summedRandomVectors[position] = Array(vectorArray.length).fill(0);
-        }
-        summedRandomVectors[position] = summedRandomVectors[position].map(
-          (sum, index) => sum + (vectorArray[index] || 0)
-        );
-      });
-    }
-
-    // Step 2: Process commitments and format the result
-    for (const evm of evms) {
-      result[evm.id] = { processedCommitments: [], positions: {} };
-
-      // Process commitments
-      for (const { voter, votedAt } of evm.buffer) {
-        const commitment = await Commitment.findOne({ where: { evm: evm.id, voter } });
-        if (commitment) {
-          await commitment.destroy();
-          result[evm.id].processedCommitments.push({ voter, votedAt });
-        }
+  // Step 1: Sum up random vectors for each position across all EVMs
+  for (const evm of evms) {
+    evm.randomVector.forEach(({ position, randomVector }) => {
+      const vectorArray = randomVector.split(",").map((val) => parseInt(val, 10));
+      if (!summedRandomVectors[position]) {
+        summedRandomVectors[position] = Array(vectorArray.length).fill(0);
       }
-
-      // Adjust commitments based on summed vectors
-      const commitments = await Commitment.findAll({ where: { evm: evm.id } });
-      for (const commitment of commitments) {
-        const position = commitment.position;
-        const summedVector = summedRandomVectors[position];
-        if (!summedVector) continue;
-
-        const commitmentArray = commitment.commitment.split(",").map((val) => parseInt(val, 10));
-        const resultVector = commitmentArray.map((val, index) => val - (summedVector[index] || 0));
-
-        // Store result in the structured format
-        result[evm.id].positions[position] = {
-          result_vector: resultVector.join(","),
-        };
-
-        commitment.commitment = resultVector.join(",");
-        await commitment.save();
-    }
+      summedRandomVectors[position] = summedRandomVectors[position].map(
+        (sum, index) => sum + (vectorArray[index] || 0)
+      );
+    });
   }
 
-  console.log("Final result object:", result);
+  // Step 2: Adjust commitments based on summed vectors
+  const commitments = await Commitment.findAll();
+  const finalResult = {};
+
+  for (const commitment of commitments) {
+    const position = commitment.position;
+    const summedVector = summedRandomVectors[position];
+    if (!summedVector) continue;
+
+    const commitmentArray = commitment.commitment.split(",").map((val) => parseInt(val, 10));
+    const resultVector = commitmentArray.map((val, index) => val - (summedVector[index] || 0));
+
+    // Store final result by position
+    finalResult[position] = resultVector.join(",");
+
+    // Update commitment in DB
+    commitment.commitment = resultVector.join(",");
+    await commitment.save();
+  }
+
+  // Convert result object to array format
+  const resultArray = Object.entries(finalResult).map(([position, result_vector]) => ({
+    position,
+    result_vector,
+  }));
+
+  console.log("Final result array:", resultArray);
   console.log("Summed Random Vectors:", summedRandomVectors);
   process.exit();
 }, 10000);
