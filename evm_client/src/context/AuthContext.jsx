@@ -29,6 +29,8 @@ export const AuthProvider = ({ children }) => {
       });
       if (responce.status === 200) {
         setEc({ role: 'ec', ...responce.data.Data });
+        localStorage.setItem("ecId", responce.data.Data._id);
+        localStorage.setItem("ecFingerprint", responce.data.Data.fingerprint);
         navigate("/evm-register");
       }
       else {

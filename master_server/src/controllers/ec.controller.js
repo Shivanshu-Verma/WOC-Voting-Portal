@@ -21,8 +21,8 @@ export const handleEcStaffRegistration = async (req, res) => {
         .json(formatResponse(false, null, 409, "Staff already exists"));
     }
 
-    const encryptedRightThumb = encryptBiometric(biometric.right);
-    const encryptedLeftThumb = encryptBiometric(biometric.left);
+    // const encryptedRightThumb = encryptData(biometric.right);
+    // const encryptedLeftThumb = encryptData(biometric.left);
     const hashedPassword = crypto
       .createHash("sha256")
       .update(password)
@@ -32,8 +32,10 @@ export const handleEcStaffRegistration = async (req, res) => {
       id: id,
       name: name,
       password: hashedPassword,
-      biometric_right: encryptedRightThumb,
-      biometric_left: encryptedLeftThumb,
+      biometric_right: biometric.right,
+      biometric_left: biometric.left,
+      // biometric_right: encryptedRightThumb,
+      // biometric_left: encryptedLeftThumb,
       contact: contact,
     });
 
@@ -71,6 +73,7 @@ export const handleEcStaffRegistration = async (req, res) => {
 
 export const handleEcVolunteerRegistration = async (req, res) => {
   const { id, name, contact, biometric, verifiedByStaff, password } = req.body;
+  console.log(id, name, contact, biometric, verifiedByStaff, password);
 
   try {
     // Check if volunteer already exists
@@ -83,8 +86,8 @@ export const handleEcVolunteerRegistration = async (req, res) => {
     }
 
     // Encrypt the volunteer's biometric data
-    const encryptedRightThumb = encryptBiometric(biometric.right);
-    const encryptedLeftThumb = encryptBiometric(biometric.left);
+    // const encryptedRightThumb = encryptData(biometric.right);
+    // const encryptedLeftThumb = encryptData(biometric.left);
 
     // Verify the staff providing verification
     const staffProvided = await EC_Staff.findOne({
@@ -111,8 +114,8 @@ export const handleEcVolunteerRegistration = async (req, res) => {
       name,
       contact,
       password: `${hashedPassword}`, // Store salt and hash together
-      biometric_right: encryptedRightThumb,
-      biometric_left: encryptedLeftThumb,
+      biometric_right: biometric.right,
+      biometric_left: biometric.left,
       verifiedByStaff: verifiedByStaff,
     });
 
@@ -247,11 +250,13 @@ export const handleEcVolunteerLogin = async (req, res) => {
       }
     );
 
+    console.log("setting cookie...")
+
     // Store JWT in an HTTP-only cookie
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Secure only in production
-      sameSite: "None",
+      secure: false, // Secure only in production
+      sameSite: "Strict",
       maxAge: 12 * 60 * 60 * 1000, // 12 hours
     });
 

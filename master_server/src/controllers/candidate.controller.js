@@ -11,12 +11,10 @@ import { decryptData, encryptData, encryptBiometric } from "../utils/crypto.util
 import { formatResponse } from "../utils/formatApiResponse.js";
 
 export const handleCandidateRegistration = async (req, res) => {
-  const { id, name, contact, position, biometric, verifiedByVolunteer } =
+  const { id, name, contact, position, verifiedByVolunteer } =
     req.body;
 
   try {
-    const encryptedRightThumb = encryptBiometric(biometric.right);
-    const encryptedLeftThumb = encryptBiometric(biometric.left);
 
     const candidateExists = await Candidate.findOne({
       where: {
@@ -53,8 +51,6 @@ export const handleCandidateRegistration = async (req, res) => {
       name: name,
       contact: contact,
       position: position,
-      biometric_right: encryptedRightThumb,
-      biometric_left: encryptedLeftThumb,
       verfiedByVolunteer: verifiedByVolunteer,
       imageUrl: req.file?.path,
     });

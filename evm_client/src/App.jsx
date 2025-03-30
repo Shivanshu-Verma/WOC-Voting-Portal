@@ -13,12 +13,12 @@ import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 import DevToolsDetector from './components/DevToolDetector';
 disableReactDevTools();
 const AppRoutes = () => {
-  debugger; // Pause here when component initializes
+  // debugger; // Pause here when component initializes
   
   const evmId = useEvmStore((state) => state.evmId);
   
   useEffect(() => {
-    debugger; // Pause here when the effect runs
+    // debugger; // Pause here when the effect runs
     
     document.addEventListener('contextmenu', (event) => event.preventDefault()); // Disable right-click
 
@@ -40,7 +40,7 @@ const AppRoutes = () => {
   return (
     <Router>
       <AuthProvider >
-        <DevToolsDetector />
+        {/* <DevToolsDetector /> */}
         <Routes>
           <Route path="/" element={evmId ? <Navigate to="/voter-login" /> : <ECLoginPage />} />
           <Route path="/evm-register" element={<ProtectedRoute><EvmRegistration /> </ProtectedRoute>} />

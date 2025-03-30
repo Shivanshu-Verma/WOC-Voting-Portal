@@ -6,7 +6,9 @@ import { formatResponse } from "../utils/formatApiResponse.js";
 export const authenticateUser = async (req, res, next) => {
   try {
     // Extract token from cookie
+    console.log("cookie = ", req.cookies);
     const token = req.cookies?.auth_token;
+    console.log(token);
     if (!token) {
       return res
         .status(401)

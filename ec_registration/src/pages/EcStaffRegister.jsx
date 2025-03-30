@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
 const EcStaffRegister = () => {
   const [staffId, setStaffId] = useState("");
@@ -8,35 +8,32 @@ const EcStaffRegister = () => {
   const [rightFingerprint, setRightFingerprint] = useState(null);
   const [leftCaptureStatus, setLeftCaptureStatus] = useState("Left Fingerprint Not Captured");
   const [rightCaptureStatus, setRightCaptureStatus] = useState("Right Fingerprint Not Captured");
+  const [isVerified, setIsVerified] = useState(false);
+  const [showVerifyButton, setShowVerifyButton] = useState(false);
 
   const navigate = useNavigate();
 
-  // Handle staff ID input change
+  // Handle staff ID input
   const handleChange = (e) => {
     setStaffId(e.target.value);
   };
 
-  // Fingerprint capture function
+  // Capture fingerprint using MFS100
   const captureFingerprint = (finger) => {
     if (typeof window.CaptureFinger !== "function") {
       alert("Fingerprint scanner function is not available.");
       return;
     }
 
-    const quality = 60; // Fingerprint quality (40-90)
-    const timeout = 10; // Timeout in seconds
-
     try {
-      const res = window.CaptureFinger(quality, timeout);
-      console.log(`CaptureFinger Response (${finger}):`, res);
-
+      const res = window.CaptureFinger(60, 10); // Quality 60, Timeout 10 seconds
       if (!res || !res.httpStaus) {
         alert("Error: No response from fingerprint scanner.");
         return;
       }
 
-      if (res.data.ErrorCode !== "0") {
-        alert(`Capture error: ${res.data.ErrorDescription || "Unknown error"}`);
+      if (res.data?.ErrorCode !== "0") {
+        alert(`Capture error: ${res.data?.ErrorDescription || "Unknown error"}`);
         return;
       }
 
@@ -53,10 +50,41 @@ const EcStaffRegister = () => {
     }
   };
 
+  // Match fingerprint against EC stored ISO template
+  const matchFingerprint = () => {
+    if (typeof window.MatchFinger !== "function") {
+      alert("Fingerprint matching function is not available.");
+      return false;
+    }
+
+    // Retrieve the EC ISO template from localStorage
+    const isoTemplate = "Rk1SACAyMAAAAADwAAABPAFiAMUAxQEAAAAoI0BlANoEAEA7ALOQAEBxAJH6AEAiAPSmAIBuARiwAEAMAJQOAIBbAF59AEB9AEx1AICCAUjKAEB0ADj4AEA8ACp7AEEGAGjnAEBPAOScAECLALR9AECYAKn6AEAaAOefAECuAKZ7AEAvASa4AIB1AS8UAECLAUXUAEAbAT69AEA7AVRBAEASACyDAIC4ABNvAECAANeEAIBwAPicAEBEAISJAEBiARYYAIBUASa9AEA8AS69AICpASdrAEAPAS+0AEBIAVHIAECIADV5AEBdAAttAAAA";
+    if (!isoTemplate) {
+      alert("No EC fingerprint template found in localStorage.");
+      return false;
+    }
+
+    try {
+      const res = window.MatchFinger(60, 10, isoTemplate); // Capture and compare
+      console.log("MatchFinger Response: ", res);
+
+      if (res?.httpStaus && res.data?.ErrorCode === "0" && res.data?.Status) {
+        alert("Fingerprint verified successfully!");
+        setIsVerified(true);
+        return true; // Matched successfully
+      }
+
+      alert(`Fingerprint mismatch: ${res.data?.ErrorDescription || "Unknown error"}`);
+      return false; // No match
+    } catch (error) {
+      console.error("Match Error: ", error);
+      alert(`Fingerprint verification failed: ${error.message}`);
+      return false; // Handle errors
+    }
+  };
+
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
+  const handleSubmit = async () => {
     if (!staffId) {
       alert("Please enter Staff ID.");
       return;
@@ -65,25 +93,18 @@ const EcStaffRegister = () => {
       alert("Please capture both left and right fingerprints.");
       return;
     }
-  
-    // Send staff ID and fingerprints to server
+
+    if (!matchFingerprint()) return; // Verify fingerprint before registration
+
     const formData = new FormData();
     formData.append("staffId", staffId);
     formData.append("leftFingerprint", leftFingerprint);
     formData.append("rightFingerprint", rightFingerprint);
-  
+
     try {
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/abcd`, formData);
-      console.log("Registration Response: ", response.data);
-  
       alert(`Staff ID: ${staffId} registered successfully!`);
-  
-      // Reset the form fields and states
-      setStaffId("");
-      setLeftFingerprint(null);
-      setRightFingerprint(null);
-      setLeftCaptureStatus("Left Fingerprint Not Captured");
-      setRightCaptureStatus("Right Fingerprint Not Captured");
+      setShowVerifyButton(true);
     } catch (error) {
       console.error("Registration Error: ", error);
       alert(`Registration failed: ${error.message}`);
@@ -95,12 +116,11 @@ const EcStaffRegister = () => {
       <h1 className="text-3xl font-bold mb-8 text-gray-800">EC Staff Registration</h1>
 
       {/* Registration Form */}
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <form onSubmit={(e) => e.preventDefault()} className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         {/* Staff ID Input */}
         <input
           type="text"
           placeholder="Staff ID"
-          name="staffId"
           value={staffId}
           onChange={handleChange}
           className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -128,55 +148,35 @@ const EcStaffRegister = () => {
 
         {/* Submit Button */}
         <button
-          type="submit"
+          onClick={handleSubmit}
           className="w-full py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200"
         >
           Register Staff
         </button>
       </form>
 
-      {/* Fingerprint Preview Section */}
+      {/* Fingerprint Preview */}
       <div className="flex mt-8 space-x-12">
-        {/* Left Fingerprint Preview */}
-        <div className="text-center">
-          <h2 className="text-lg font-semibold mb-4">Left Fingerprint Preview</h2>
-          {leftFingerprint ? (
-            <img
-              src={leftFingerprint}
-              alt="Left Fingerprint"
-              className="w-48 h-48 border rounded"
-            />
-          ) : (
-            <div className="w-48 h-48 border rounded bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-500">No Image</span>
-            </div>
-          )}
-          <p className={`mt-2 ${leftFingerprint ? "text-green-600" : "text-red-600"}`}>
-            {leftCaptureStatus}
-          </p>
-        </div>
-
-        {/* Right Fingerprint Preview */}
-        <div className="text-center">
-          <h2 className="text-lg font-semibold mb-4">Right Fingerprint Preview</h2>
-          {rightFingerprint ? (
-            <img
-              src={rightFingerprint}
-              alt="Right Fingerprint"
-              className="w-48 h-48 border rounded"
-            />
-          ) : (
-            <div className="w-48 h-48 border rounded bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-500">No Image</span>
-            </div>
-          )}
-          <p className={`mt-2 ${rightFingerprint ? "text-green-600" : "text-red-600"}`}>
-            {rightCaptureStatus}
-          </p>
-        </div>
+        <FingerprintPreview title="Left Fingerprint Preview" image={leftFingerprint} status={leftCaptureStatus} />
+        <FingerprintPreview title="Right Fingerprint Preview" image={rightFingerprint} status={rightCaptureStatus} />
       </div>
     </div>
   );
 };
+
+// Fingerprint Preview Component
+const FingerprintPreview = ({ title, image, status }) => (
+  <div className="text-center">
+    <h2 className="text-lg font-semibold mb-4">{title}</h2>
+    {image ? (
+      <img src={image} alt={title} className="w-48 h-48 border rounded" />
+    ) : (
+      <div className="w-48 h-48 border rounded bg-gray-200 flex items-center justify-center">
+        <span className="text-gray-500">No Image</span>
+      </div>
+    )}
+    <p className={`mt-2 ${image ? "text-green-600" : "text-red-600"}`}>{status}</p>
+  </div>
+);
 
 export default EcStaffRegister;

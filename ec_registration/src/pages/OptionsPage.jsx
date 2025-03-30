@@ -9,7 +9,7 @@ const OptionsPage = () => {
 
       <div className="space-y-6">
         <button
-          onClick={() => navigate("/candidate-registration")}
+          onClick={() => navigate("/verify")}
           className="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
         >
           Candidate Registration

@@ -83,6 +83,8 @@ export const handleCastVote = async (req, res) => {
     const voterId = req.voterId; // Retrieved from middleware
     const { commitments } = req.body; // req.decryptedData
 
+    console.log("commitments: ", commitments);
+
     // Find the voter
     const voter = await Voter.findOne({ where: { voterId } });
     if (!voter) {
@@ -124,7 +126,7 @@ export const handleCastVote = async (req, res) => {
        *  } 
        * ]
        */
-      console.log("New Commitment Created... ");
+      console.log("New Commitment Created... with commitment = ", newCommit.commitment);
     }
 
     // Add the voter to the EVM's buffer
