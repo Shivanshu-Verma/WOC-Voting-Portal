@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import toast from "react-hot-toast";
 import useEvmStore from "../context/zustand";
-import { clearAllCommitmentSums, getAllCommitmentSums, updateCommitmentSum } from "../context/idb";
+import {
+  clearAllCommitmentSums,
+  getAllCommitmentSums,
+  updateCommitmentSum,
+} from "../context/idb";
 import axios from "axios";
 import { axiosInstance } from "./EvmRegister";
 
@@ -13,7 +17,8 @@ const VoterLogin = () => {
   const [part1, setPart1] = useState("");
   const [part2, setPart2] = useState("");
   const [part3, setPart3] = useState("");
-  const [part4, setPart4] = useState("");
+  const [part4a, setPart4a] = useState("");
+  const [part4b, setPart4b] = useState("");
 
   const [fingerprint, setFingerprint] = useState(null);
   const [fingerprintVerified, setFingerprintVerified] = useState(false);
@@ -26,7 +31,7 @@ const VoterLogin = () => {
   const setNumVoteCast = useEvmStore((state) => state.setNumVoteCast);
 
   const handleClick = async () => {
-    if (![part1, part2, part3, part4].every(part => part && part.trim())) {
+    if (![part1, part2, part3, part4].every((part) => part && part.trim())) {
       toast.error("Please select all parts of your Voter ID");
       return;
     }
@@ -39,17 +44,22 @@ const VoterLogin = () => {
       const response = await GetStudentDetail(voterId);
 
       if (response) {
-        const { biometric_left, biometric_right, imageUrl, name } = response.Data.voter;
+        const { biometric_left, biometric_right, imageUrl, name } =
+          response.Data.voter;
         console.log(response?.Data);
 
         if (!biometric_left && !biometric_right) {
           toast.warning("No biometric data found. Please register first.");
         } else if (!biometric_left || !biometric_right) {
-          toast.warning("Incomplete biometric data found. Continuing with available fingerprints.");
+          toast.warning(
+            "Incomplete biometric data found. Continuing with available fingerprints."
+          );
         } else {
-          toast.success("Student details found. Please verify your fingerprint.");
+          toast.success(
+            "Student details found. Please verify your fingerprint."
+          );
         }
-        
+
         setFingerprint({
           left: biometric_left || null,
           right: biometric_right || null,
@@ -62,7 +72,7 @@ const VoterLogin = () => {
       console.error("Error fetching student details:", error);
       toast.error("Failed to fetch student details. Please try again.");
       setEvmId(null);
-      navigate('/');
+      navigate("/");
     } finally {
       setLoading(false);
     }
@@ -92,26 +102,30 @@ const VoterLogin = () => {
       if (fingerprint.left) {
         leftRes = window.MatchFinger(60, 10, fingerprint.left);
       }
-      
+
       if (fingerprint.right) {
         rightRes = window.MatchFinger(60, 10, fingerprint.right);
       }
 
-      const isLeftMatch = 
-        leftRes.httpStaus && leftRes.data?.ErrorCode === "0" && leftRes.data.Status;
-      const isRightMatch = 
-        rightRes.httpStaus && rightRes.data?.ErrorCode === "0" && rightRes.data.Status;
+      const isLeftMatch =
+        leftRes.httpStaus &&
+        leftRes.data?.ErrorCode === "0" &&
+        leftRes.data.Status;
+      const isRightMatch =
+        rightRes.httpStaus &&
+        rightRes.data?.ErrorCode === "0" &&
+        rightRes.data.Status;
 
       toast.dismiss("fingerprint");
 
       if (isLeftMatch) {
         toast.success("Left Fingerprint verified successfully!");
       }
-      
+
       if (isRightMatch) {
         toast.success("Right Fingerprint verified successfully!");
       }
-      
+
       if (isLeftMatch || isRightMatch) {
         toast.success("Fingerprint verification successful!");
         setFingerprintVerified(true);
@@ -134,9 +148,9 @@ const VoterLogin = () => {
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-2 mt-4">
         {/* Dropdown 1 */}
-        <select 
-          value={part1} 
-          onChange={(e) => setPart1(e.target.value)} 
+        <select
+          value={part1}
+          onChange={(e) => setPart1(e.target.value)}
           className="border px-3 py-2 rounded"
           disabled={loading}
         >
@@ -147,9 +161,9 @@ const VoterLogin = () => {
         </select>
 
         {/* Dropdown 2 */}
-        <select 
-          value={part2} 
-          onChange={(e) => setPart2(e.target.value)} 
+        <select
+          value={part2}
+          onChange={(e) => setPart2(e.target.value)}
           className="border px-3 py-2 rounded"
           disabled={loading}
         >
@@ -161,9 +175,9 @@ const VoterLogin = () => {
         </select>
 
         {/* Dropdown 3 */}
-        <select 
-          value={part3} 
-          onChange={(e) => setPart3(e.target.value)} 
+        <select
+          value={part3}
+          onChange={(e) => setPart3(e.target.value)}
           className="border px-3 py-2 rounded"
           disabled={loading}
         >
@@ -171,29 +185,45 @@ const VoterLogin = () => {
           <option value="BB">BB</option>
           <option value="CS">CS</option>
           <option value="CH">CH</option>
+          <option value="ES">ES</option>
         </select>
 
-        {/* Dropdown 4 */}
-        <select 
-          value={part4} 
-          onChange={(e) => setPart4(e.target.value)} 
-          className="border px-3 py-2 rounded"
+        {/* Dropdown 4A */}
+        <select
+          value={part4a}
+          onChange={(e) => setPart4a(e.target.value)}
+          className="border px-3 py-2 rounded max-h-40 overflow-auto"
           disabled={loading}
         >
-          <option value="">Select Part 4</option>
-          <option value="80">80</option>
-          <option value="81">81</option>
-          <option value="82">82</option>
-          <option value="83">83</option>
-          <option value="84">84</option>
-          <option value="85">85</option>
-          <option value="86">86</option>
-          <option value="87">87</option>
-          <option value="88">88</option>
-          <option value="89">89</option>
-          <option value="90">90</option>
-          <option value="95">95</option>
-          <option value="96">96</option>
+          <option value="">Select Part 4A</option>
+          {[...Array(10).keys()].map((num) => (
+            <option key={num} value={num.toString()}>
+              {num.toString()}
+            </option>
+          ))}
+          {[...Array(90).keys()].map((num) => (
+            <option
+              key={num + 10}
+              value={(num + 10).toString().padStart(2, "0")}
+            >
+              {(num + 10).toString().padStart(2, "0")}
+            </option>
+          ))}
+        </select>
+
+        {/* Dropdown 4B */}
+        <select
+          value={part4b}
+          onChange={(e) => setPart4b(e.target.value)}
+          className="border px-3 py-2 rounded max-h-40 overflow-auto"
+          disabled={loading}
+        >
+          <option value="">Select Part 4B</option>
+          {[...Array(100).keys()].map((num) => (
+            <option key={num} value={num.toString().padStart(2, "0")}>
+              {num.toString().padStart(2, "0")}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -204,17 +234,21 @@ const VoterLogin = () => {
       >
         {loading ? "Loading..." : "Fetch Details"}
       </button>
-     
+
       {fingerprint && (fingerprint.left || fingerprint.right) && (
         <div className="mt-4 w-full max-w-md">
           {voter?.Data?.voter?.name && (
             <div className="bg-gray-100 p-4 rounded mb-4">
               <p className="font-medium">Name: {voter.Data.voter.name}</p>
-              {voter.Data.voter.course && <p>Course: {voter.Data.voter.course}</p>}
-              {voter.Data.voter.branch && <p>Branch: {voter.Data.voter.branch}</p>}
+              {voter.Data.voter.course && (
+                <p>Course: {voter.Data.voter.course}</p>
+              )}
+              {voter.Data.voter.branch && (
+                <p>Branch: {voter.Data.voter.branch}</p>
+              )}
             </div>
           )}
-          
+
           <button
             onClick={verifyFingerprint}
             className="w-full bg-green-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-green-600 transition-colors"

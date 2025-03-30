@@ -52,24 +52,24 @@ const RegisterVolunteer = () => {
   const verifyFingerprint = async () => {
     const ecFingerprint = localStorage.getItem("ecFingerprint");
     const staffFingerprint = localStorage.getItem("staffFingerprint");
-  
+
     // Ensure fingerprint is available
     if (!ecFingerprint && !staffFingerprint) {
       alert("Verifier fingerprint template is missing. Please log in again.");
       return false;
     }
-  
+
     // Ensure MatchFinger function exists
     if (typeof window.MatchFinger !== "function") {
       alert("Fingerprint matcher is not available.");
       return false;
     }
-  
+
     try {
       // Match against commissioner or staff fingerprint
       const storedFingerprint = ecFingerprint || staffFingerprint;
       const res = window.MatchFinger(60, 10, storedFingerprint);
-  
+
       if (res.httpStaus && res.data?.ErrorCode === "0" && res.data.Status) {
         alert("Fingerprint verified successfully.");
         return true; // Fingerprint matched
@@ -83,22 +83,29 @@ const RegisterVolunteer = () => {
       return false; // Error during verification
     }
   };
-  
 
   // Handle Registration
   const handleRegister = async () => {
-    const verifiedBy = localStorage.getItem("staffId") || localStorage.getItem("ecId");
-  
+    const verifiedBy =
+      localStorage.getItem("staffId") || localStorage.getItem("ecId");
+
     if (!verifiedBy) {
       setError("Verifier information is missing. Please log in again.");
       return;
     }
-  
-    if (!id || !password || !contact || !name || !rightFingerprint || !leftFingerprint) {
+
+    if (
+      !id ||
+      !password ||
+      !contact ||
+      !name ||
+      !rightFingerprint ||
+      !leftFingerprint
+    ) {
       setError("Please fill all fields and capture fingerprints.");
       return;
     }
-  
+
     try {
       // Step 1: Verify the verifier’s fingerprint (staff or commissioner)
       const isFingerprintValid = await verifyFingerprint();
@@ -106,9 +113,9 @@ const RegisterVolunteer = () => {
         setError("Fingerprint verification failed. Access denied.");
         return;
       }
-  
+
       setLoading(true);
-  
+
       // Step 2: Proceed with volunteer registration
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/ec/register/volunteer`,
@@ -122,9 +129,10 @@ const RegisterVolunteer = () => {
             left: leftFingerprint,
           },
           verifiedByStaff: verifiedBy,
-        }
+        },
+        { withCredentials: true }
       );
-  
+
       if (res.data?.Success) {
         alert(res.data.Data?.message || "Volunteer registered successfully.");
         resetForm();
@@ -138,7 +146,6 @@ const RegisterVolunteer = () => {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
