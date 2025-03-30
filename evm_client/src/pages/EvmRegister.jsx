@@ -10,7 +10,7 @@ const encryption_iv = import.meta.env.VITE_ENCRYPTION_IV;
 let axiosInstance = axios.create({
   baseURL: base_url,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -19,12 +19,11 @@ const updateAxiosWithEvmId = (evmKey) => {
   console.log("Updated axios with EVM key:", evmKey);
 
   if (evmKey) {
-    axiosInstance.defaults.headers.common['x-evm-id'] = evmKey;
+    axiosInstance.defaults.headers.common["x-evm-id"] = evmKey;
   } else {
-    delete axiosInstance.defaults.headers.common['x-evm-id'];
+    delete axiosInstance.defaults.headers.common["x-evm-id"];
   }
 };
-
 
 const hexToBuffer = (hex) => {
   const bytes = new Uint8Array(hex.length / 2);
@@ -37,8 +36,8 @@ const hexToBuffer = (hex) => {
 // Utility function to convert ArrayBuffer to hex string
 const bufferToHex = (buffer) => {
   return Array.from(new Uint8Array(buffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 };
 
 // BigInteger operations for discrete logarithm Diffie-Hellman
@@ -66,7 +65,9 @@ class BigIntModular {
 // Browser-compatible discrete logarithm Diffie-Hellman
 const generateDH = async () => {
   // These are the same prime and generator from your original code
-  const prime = BigInt("0xeb984f6801b55ce41ccfc793ce2cf98122486e47afd51b31ffdbe26b816b0d5d851acdfcf5d84c786cbf41c6ea77d8e3f26beaeeb6147509a19fe4ce9e2f241448a3f05c08679b50fa7a4bce264757a506e5140fdb9be043f912f0c5c8f1419daf5f6307c83baa7d2c949be489cb1de4fa9f6c37bac1d4b4ce22f08704d40840c74f2fad51f9b5bc127259dc192f047bcc3d9bacbc01ec7916f842c1181e5b5c4c5375d057cb6912fbb51c454a0586d5a5af4777ef2c9e30867c0a40ab40e72b93a7856a5e58eaf377d4b731571b3e57baebab1db14ddb743e6496c2386647839c8702bbad5ec0c52c7d809ccd1a7289380e6489817fb1fa8fa557a8ae1c8ad7");
+  const prime = BigInt(
+    "0xeb984f6801b55ce41ccfc793ce2cf98122486e47afd51b31ffdbe26b816b0d5d851acdfcf5d84c786cbf41c6ea77d8e3f26beaeeb6147509a19fe4ce9e2f241448a3f05c08679b50fa7a4bce264757a506e5140fdb9be043f912f0c5c8f1419daf5f6307c83baa7d2c949be489cb1de4fa9f6c37bac1d4b4ce22f08704d40840c74f2fad51f9b5bc127259dc192f047bcc3d9bacbc01ec7916f842c1181e5b5c4c5375d057cb6912fbb51c454a0586d5a5af4777ef2c9e30867c0a40ab40e72b93a7856a5e58eaf377d4b731571b3e57baebab1db14ddb743e6496c2386647839c8702bbad5ec0c52c7d809ccd1a7289380e6489817fb1fa8fa557a8ae1c8ad7"
+  );
   const generator = BigInt("0x02");
 
   // Generate a random private key (a)
@@ -110,22 +111,22 @@ const decryptAES256CBC = async (encryptedText, sharedSecretHex) => {
 
     // Hash the shared secret with SHA-256 to derive the encryption key
     const hashedKey = await window.crypto.subtle.digest(
-      'SHA-256',
+      "SHA-256",
       sharedSecretBuffer
     );
 
     // Import the hashed key for AES decryption
     const key = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       hashedKey,
-      { name: 'AES-CBC', length: 256 },
+      { name: "AES-CBC", length: 256 },
       false,
-      ['decrypt']
+      ["decrypt"]
     );
 
     // Decrypt the data using AES-CBC
     const decrypted = await window.crypto.subtle.decrypt(
-      { name: 'AES-CBC', iv: ivBuffer },
+      { name: "AES-CBC", iv: ivBuffer },
       key,
       encryptedBuffer
     );
@@ -151,6 +152,7 @@ const EvmRegistration = () => {
     if (evmRoom.trim()) {
       setError("");
       setShowStaffInput(true);
+      handleFingerprintCapture();
     } else {
       setError("Please enter an EVM Room Number");
     }
@@ -174,12 +176,16 @@ const EvmRegistration = () => {
 
       // Send our public key to the server - using axios directly for this request
       // since we don't have the EVM key yet
-      const response = await axios.post(`${base_url}/evm/register`, {
-        room: evmRoom,
-        clientPublicKey: publicKeyHex,
-      }, {
-        withCredentials: true
-      });
+      const response = await axios.post(
+        `${base_url}/evm/register`,
+        {
+          room: evmRoom,
+          clientPublicKey: publicKeyHex,
+        },
+        {
+          withCredentials: true,
+        }
+      );
       // console.log(response.data);
 
       if (response.status === 201 && response.data) {
@@ -193,7 +199,11 @@ const EvmRegistration = () => {
         }
 
         // Derive shared secret
-        const sharedSecret = computeSharedSecret(privateKey, serverPublicKey, prime);
+        const sharedSecret = computeSharedSecret(
+          privateKey,
+          serverPublicKey,
+          prime
+        );
         // console.log("Shared Secret computed successfully", sharedSecret);
 
         // Decrypt EVM key
@@ -203,7 +213,10 @@ const EvmRegistration = () => {
         }
 
         // Decrypt the key and update the axios instance
-        const decryptedKey = await decryptAES256CBC(encryptedEvmKey, sharedSecret);
+        const decryptedKey = await decryptAES256CBC(
+          encryptedEvmKey,
+          sharedSecret
+        );
         updateAxiosWithEvmId(response.data.Data.evmId);
 
         console.log("EVM Key decrypted successfully");
@@ -240,19 +253,6 @@ const EvmRegistration = () => {
       >
         Register
       </button>
-
-      {showStaffInput && (
-        <div className="mt-6 flex flex-col items-center">
-          <p className="mb-2">Verify your fingerprint</p>
-          <button
-            onClick={handleFingerprintCapture}
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-600 transition-colors disabled:bg-blue-300"
-            disabled={isLoading}
-          >
-            {isLoading ? "Processing..." : "Capture Fingerprint"}
-          </button>
-        </div>
-      )}
     </div>
   );
 };

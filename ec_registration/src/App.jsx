@@ -9,6 +9,7 @@ import Warning from './pages/Warning';
 import ProtectedRoute from './components/ProtectedRoute';
 import DevToolsDetector from './components/DevToolDetector';
 import OptionsPage from './pages/OptionsPage';
+import VerificationPage from './pages/VerificationPage';
 
 const AppRoutes = () => {
   const ecId = useEcStore((state) => state.ecId);
@@ -31,14 +32,28 @@ const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-      {/* <DevToolsDetector /> */}
-      <Route path="/" element={ecId ? <Navigate to="/dashboard" /> : <LoginPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><OptionsPage/></ProtectedRoute>} />
-        <Route path="/staff-registration" element={<ProtectedRoute><EcStaffRegister /></ProtectedRoute>} />
-        <Route path="/volunteer-registration" element={<ProtectedRoute><EcVolunteerRegister /></ProtectedRoute>} />
-        <Route path="/candidate-registration" element={<ProtectedRoute><CandidateRegister /></ProtectedRoute>} />
-        <Route path="/warning" element={<Warning />} />
-      </Routes>
+    <Route path="/" element={ecId ? <Navigate to="/dashboard" /> : <LoginPage />} />
+    <Route path="/dashboard" element={<ProtectedRoute><OptionsPage /></ProtectedRoute>} />
+
+    <Route path="/verify" element={<ProtectedRoute><VerificationPage /></ProtectedRoute>} />
+
+    <Route path="/staff-registration" element={<ProtectedRoute><EcStaffRegister /></ProtectedRoute>} />
+
+    <Route path="/volunteer-registration" element={
+      <ProtectedRoute requires="staff">
+        <EcVolunteerRegister />
+      </ProtectedRoute>
+    } />
+
+    <Route path="/candidate-registration" element={
+      <ProtectedRoute requires="volunteer">
+        <CandidateRegister />
+      </ProtectedRoute>
+    } />
+
+    <Route path="/warning" element={<Warning />} />
+  </Routes>
+
     </Router>
   );
 };

@@ -1,12 +1,13 @@
 import { Voter } from "../models/Voter.js";
 import { EC_Staff } from "../models/EC_Staff.js";
 import { EC_Volunteer } from "../models/EC_Volunteer.js";
-import { encryptData, decryptData } from "../utils/crypto.utils.js";
+import { encryptData, decryptData, encryptBiometric } from "../utils/crypto.utils.js";
 import { formatResponse } from "../utils/formatApiResponse.js";
 import { POSITIONS } from "../constants/positions.js";
 
 export const handleVoterRegistration = async (req, res) => {
   const { voterId, name, biometric, verifiedByVolunteer } = req.body;
+  console.log("req.body = ", req.body);
 
   if (!voterId || !name || !biometric || !verifiedByVolunteer) {
     return res
@@ -15,8 +16,8 @@ export const handleVoterRegistration = async (req, res) => {
   }
 
   try {
-    const encryptedRightThumb = encryptData(biometric.right);
-    const encryptedLeftThumb = encryptData(biometric.left);
+    // const encryptedRightThumb = encryptData(biometric.right);
+    // const encryptedLeftThumb = encryptData(biometric.left);
 
     // Verify EC Volunteer biometric
     const volunteerProvided = await EC_Volunteer.findOne({
@@ -30,12 +31,16 @@ export const handleVoterRegistration = async (req, res) => {
         .status(404)
         .json(formatResponse(false, null, 404, "Volunteer not found"));
 
+    console.log("req.file = ", req.file);
+
     // Register voter
     const voter = await Voter.create({
       voterId,
       name,
-      biometric_right: encryptedRightThumb,
-      biometric_left: encryptedLeftThumb,
+      biometric_right: biometric.right,
+      biometric_left: biometric.left,
+      // biometric_right: encryptedRightThumb,
+      // biometric_left: encryptedLeftThumb,
       verifiedByVolunteer: verifiedByVolunteer,
       imageUrl: req.file?.path,
     });

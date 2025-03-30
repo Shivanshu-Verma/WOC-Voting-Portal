@@ -8,6 +8,7 @@ const DevToolsDetector = () => {
         const handleDevToolsOpen = () => {
             console.clear();
             console.log('%c STOP! ', 'color: red; font-size: 50px; font-weight: bold;');
+            window.location.reload();
             navigate('/warning');
         };
 

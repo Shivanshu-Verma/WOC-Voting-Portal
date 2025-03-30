@@ -16,10 +16,10 @@ export const Voter = sequelize.define(
             allowNull: false,
         },
         biometric_right: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
         },
         biometric_left: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
         },
         verifiedByVolunteer: {
             type: DataTypes.STRING,
