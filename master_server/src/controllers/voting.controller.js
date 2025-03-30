@@ -9,7 +9,7 @@ import { EVM } from "../models/EVM.js";
 export const handleVoterSession = async (req, res) => {
   try {
     const { id } = req.params;
-
+ 
     console.log("Voter ID = ", id);
     const voter = await Voter.findOne({ where: { voterId: id } });
     if (!voter) {
@@ -153,34 +153,28 @@ export const handleCastVote = async (req, res) => {
   }
 };
 
-
 export const checkpointEVM = async (req, res) => {
   try {
-    console.log("checkpointing called...");
-    const evmId = "1ab63c1a-2cb9-4a87-b719-592b601447dd"; // EVM ID from the route parameter
+    console.log("Checkpointing called...");
+    const evmId = req.evm.id; // EVM ID
     const { randomVector, clientCurrentTS } = req.body;
     const currentTimestamp = new Date();
 
-    console.log("server TS = ", currentTimestamp)
-    console.log("client TS = ", new Date(clientCurrentTS));
+    console.log("Server TS =", currentTimestamp);
+    console.log("Client TS =", new Date(clientCurrentTS));
 
     if (new Date(clientCurrentTS) > currentTimestamp) {
       return res
         .status(400)
-        .json(
-          formatResponse(false, null, 400, "Client timestamp cannot be in the future.")
-        );
+        .json(formatResponse(false, null, 400, "Client timestamp cannot be in the future."));
     }
-    console.log("req.body = ", req.body);
-    // Validate randomVector schema
+
+    console.log("req.body =", req.body);
+
+    // Validate `randomVector` format
     if (
       !Array.isArray(randomVector) ||
-      randomVector.some(
-        (entry) =>
-          typeof entry !== "object" ||
-          !entry.position ||
-          !entry.randomVector
-      )
+      randomVector.some(entry => typeof entry !== "object" || !entry.position || !entry.randomVector)
     ) {
       return res
         .status(400)
@@ -197,58 +191,65 @@ export const checkpointEVM = async (req, res) => {
     // Fetch EVM
     const evm = await EVM.findByPk(evmId);
     if (!evm) {
-      return res
-        .status(404)
-        .json(formatResponse(false, null, 404, "EVM not found."));
+      return res.status(404).json(formatResponse(false, null, 404, "EVM not found."));
     }
 
     // Check buffer size
-    // if (evm.buffer.length < 3) {
-    //   return res
-    //     .status(429)
-    //     .json(
-    //       formatResponse(
-    //         false,
-    //         null,
-    //         429,
-    //         "Buffer has less than 10 entries. Please wait before checkpointing."
-    //       )
-    //     );
-    // }
+    if (evm.buffer.length < 1) {
+      return res
+        .status(429)
+        .json(
+          formatResponse(
+            false,
+            null,
+            429,
+            "Buffer has less than 10 entries. Please wait before checkpointing."
+          )
+        );
+    }
 
-    // Filter buffer to remove entries older than the current timestamp
-    const filteredBuffer = evm.buffer.filter(
-      (entry) => new Date(entry.votedAt) >= new Date(clientCurrentTS)
+    // Filter buffer entries that are newer than client timestamp
+    const updatedBuffer = evm.buffer.filter(entry => new Date(entry.votedAt) >= new Date(clientCurrentTS));
+
+    // Convert existing randomVector to a map for easy merging
+    const existingRandomVectorMap = new Map(
+      evm.randomVector.map(entry => [entry.position, JSON.parse(entry.randomVector)])
     );
 
-    // Update the EVM buffer
-    await EVM.update({ buffer: filteredBuffer }, { where: { id: evm.id } });
+    // Merge the incoming randomVector with existing values
+    randomVector.forEach(entry => {
+      const existingValues = existingRandomVectorMap.get(entry.position) || [];
+      const newValues = Array.isArray(entry.randomVector) ? entry.randomVector : [entry.randomVector];
 
-    evm.randomVector = randomVector.map(entry => ({
-      position: entry.position,
-      randomVector: JSON.stringify(entry.randomVector) // Ensures valid storage
+      // Append new values while ensuring they are arrays
+      existingRandomVectorMap.set(entry.position, [...existingValues, ...newValues]);
+    });
+
+    // Convert back to the required format
+    const updatedRandomVector = Array.from(existingRandomVectorMap.entries()).map(([position, vector]) => ({
+      position,
+      randomVector: JSON.stringify(vector) // Store as string
     }));
 
+    // Update the EVM record in the database
+    await EVM.update(
+      { buffer: updatedBuffer, randomVector: updatedRandomVector },
+      { where: { id: evm.id } }
+    );
 
-    // Save updates
-    await evm.save();
+    console.log("EVM checkpointed successfully.");
 
-    console.log("evm = ", evm);
-
-    return res
-      .status(200)
-      .json(
-        formatResponse(
-          true,
-          { message: "Checkpointing successful.", randomVector },
-          null,
-          null
-        )
-      );
+    return res.status(200).json(
+      formatResponse(
+        true,
+        { message: "Checkpointing successful.", randomVector: updatedRandomVector },
+        null,
+        null
+      )
+    );
   } catch (error) {
     console.error("Error during checkpointing:", error);
-    return res
-      .status(500)
-      .json(formatResponse(false, null, 500, "Internal Server Error"));
+    return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
   }
 };
+
