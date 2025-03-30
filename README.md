@@ -26,12 +26,10 @@ AVID is a sophisticated voting system designed to uphold voter privacy and data 
 - 🛡️ **Anonymous Voting under Admin-Level Adversary**: Maintains voter anonymity even if system administrators are compromised
 - 🔒 **Secure Atomic Voting in Hostile Networks**: Guarantees vote integrity even in unreliable or malicious network conditions
 - 🧮 **Discrete Mathematics Framework**: Employs mathematical principles to ensure voter anonymity while preserving vote integrity
-- 🔑 **Diffie-Hellman Key Exchange**: Secures communications between voters and the system
-- 🔐 **AES-256-CBC Encryption**: Military-grade encryption for ballot data
 - 🖥️ **Intuitive Interface**: Simple experience for both voters and administrators
 - 📊 **Real-time Results**: Secure tallying with instant updates
-- 🔍 **Transparent Verification**: Allows voters to verify their vote was counted correctly without compromising anonymity
-- 📈 **Scalable Architecture**: Accommodates elections of any size
+- ꩜ **Biometric Verification**: Supports fingerprint recognition for enhanced voter authentication
+- 📈 **Modular and Scalable Architecture**: Accommodates elections of any size
 
 ## 🛠️ Setup Guide
 
