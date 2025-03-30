@@ -11,7 +11,7 @@ import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 import DevToolsDetector from './components/DevToolDetector';
-disableReactDevTools();
+
 const AppRoutes = () => {
   // debugger; // Pause here when component initializes
   
@@ -24,13 +24,13 @@ const AppRoutes = () => {
 
     document.addEventListener('keydown', (event) => {
       if (event.ctrlKey && (event.key === 'u' || event.key === 's' || event.key === 'i' || event.key === 'j' || event.key === 'c')) {
-        debugger; // Pause here when a keyboard event is intercepted
+        // debugger; // Pause here when a keyboard event is intercepted
         event.preventDefault(); // Disable Ctrl+U, Ctrl+S, Ctrl+Shift+I, etc.
       }
     });
 
     return () => {
-      debugger; // Pause here when the component unmounts (cleanup)
+      // debugger; // Pause here when the component unmounts (cleanup)
       document.removeEventListener('contextmenu', (event) => event.preventDefault());
       document.removeEventListener('keydown', (event) => event.preventDefault());
     };

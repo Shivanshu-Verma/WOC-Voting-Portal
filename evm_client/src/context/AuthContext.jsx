@@ -27,11 +27,12 @@ export const AuthProvider = ({ children }) => {
       }, {
         withCredentials: true
       });
+      console.log(responce);
+      
       if (responce.status === 200) {
         setEc({ role: 'ec', ...responce.data.Data });
-        localStorage.setItem("ecId", responce.data.Data._id);
-        localStorage.setItem("ecFingerprint", responce.data.Data.fingerprint);
-        navigate("/evm-register");
+        localStorage.setItem("ecFingerprintLeft", responce.data.Data.biometric_left);
+        localStorage.setItem("ecFingerprintRight", responce.data.Data.biometric_right);
       }
       else {
         toast.error(`Login Failed`);
