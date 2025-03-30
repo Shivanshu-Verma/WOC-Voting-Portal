@@ -76,3 +76,82 @@ export const getAllCommitments = async (req, res) => {
         return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
     }
 };
+
+
+// Controller to update a voter
+export const updateVoter = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await Voter.update(req.body, { where: { id } });
+        if (!updated) return res.status(404).json(formatResponse(false, null, 404, "Voter not found"));
+        return res.status(200).json(formatResponse(true, "Voter updated successfully", null, null));
+    } catch (error) {
+        console.error("Error updating voter:", error);
+        return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
+    }
+};
+
+// Controller to update a candidate
+export const updateCandidate = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await Candidate.update(req.body, { where: { id } });
+        if (!updated) return res.status(404).json(formatResponse(false, null, 404, "Candidate not found"));
+        return res.status(200).json(formatResponse(true, "Candidate updated successfully", null, null));
+    } catch (error) {
+        console.error("Error updating candidate:", error);
+        return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
+    }
+};
+
+// Controller to update a volunteer
+export const updateVolunteer = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await EC_Volunteer.update(req.body, { where: { id } });
+        if (!updated) return res.status(404).json(formatResponse(false, null, 404, "Volunteer not found"));
+        return res.status(200).json(formatResponse(true, "Volunteer updated successfully", null, null));
+    } catch (error) {
+        console.error("Error updating volunteer:", error);
+        return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
+    }
+};
+
+// Controller to update a staff member
+export const updateStaff = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await EC_Staff.update(req.body, { where: { id } });
+        if (!updated) return res.status(404).json(formatResponse(false, null, 404, "Staff member not found"));
+        return res.status(200).json(formatResponse(true, "Staff member updated successfully", null, null));
+    } catch (error) {
+        console.error("Error updating staff member:", error);
+        return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
+    }
+};
+
+// Controller to update an EVM
+export const updateEVM = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await EVM.update(req.body, { where: { id } });
+        if (!updated) return res.status(404).json(formatResponse(false, null, 404, "EVM not found"));
+        return res.status(200).json(formatResponse(true, "EVM updated successfully", null, null));
+    } catch (error) {
+        console.error("Error updating EVM:", error);
+        return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
+    }
+};
+
+// Controller to update a commitment
+export const updateCommitment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await Commitment.update(req.body, { where: { id } });
+        if (!updated) return res.status(404).json(formatResponse(false, null, 404, "Commitment not found"));
+        return res.status(200).json(formatResponse(true, "Commitment updated successfully", null, null));
+    } catch (error) {
+        console.error("Error updating commitment:", error);
+        return res.status(500).json(formatResponse(false, null, 500, "Internal Server Error"));
+    }
+};
